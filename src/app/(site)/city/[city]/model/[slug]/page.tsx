@@ -1,23 +1,32 @@
+// src/app/(site)/city/[city]/model/[slug]/page.tsx
 import { notFound } from "next/navigation";
-import { getModelBySlug } from "@/configs/models";
 import ModelHero from "@/components/model/model-hero/ModelHero";
 import ModelSlider from "@/components/model/model-slider/ModelSlider";
-import ModelMeta from "@/components/model/model-meta/ModelMeta";
 import ModelPricing from "@/components/model/model-pricing/ModelPricing";
 import ModelAvailability from "@/components/model/model-availability/ModelAvailability";
+import type { Model } from "@/models/model.model";
 
-export default function ModelPage({ params }: { params: { city: string; slug: string } }) {
-    const model = getModelBySlug(params.slug);
-    if (!model || model.city !== params.city) return notFound();
-    const gallery = [model.photo, ...(model.gallery ?? [])];
+export default async function ModelPage({ params }: { params: { city: string; slug: string } }) {
+    const { city, slug } = params;
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/models/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    console.log(res);
+
+    if (!res.ok) return notFound();
+
+    const model: Model & { about?: string; agency?: string } = await res.json();
+
+    if (model.city && model.city.toLowerCase() !== city.toLowerCase()) return notFound();
+
+    const gallery = [model.photo, ...(model.gallery ?? [])].filter(Boolean) as string[];
 
     return (
         <main>
-            <ModelHero model={model} city={params.city} />
+            <ModelHero model={model} />
             <ModelSlider images={gallery} name={model.name} />
-            <ModelMeta model={model} />
-            {model.pricing && model.pricing.length > 0 && <ModelPricing pricing={model.pricing} name={model.name} />}
-            {model.availability && model.availability.length > 0 && <ModelAvailability availability={model.availability} />}
+            <ModelPricing model={model} />
+            <ModelAvailability model={model} />
         </main>
     );
 }

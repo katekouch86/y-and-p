@@ -41,8 +41,8 @@
     height: 440px;
     border-radius: 22px;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-    background: #fff;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+    background: var(--light-color);
   }
 
   &__media {
@@ -80,14 +80,14 @@
     cursor: pointer;
     background: linear-gradient(135deg, #fff 60%, #e7e7e7 100%);
     color: #222;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
     transition: background 0.25s, box-shadow 0.25s, color 0.25s, transform 0.18s;
     z-index: 2;
     pointer-events: auto;
 
     &:hover {
       background: var(--secondary-background-color);
-      box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.10);
       color: var(--light-color);
       transform: scale(1.04);
       filter: brightness(1.04);
@@ -96,7 +96,7 @@
 
   &__dots {
     pointer-events: auto;
-    display: flex ;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
@@ -115,9 +115,10 @@
       transition: background 0.2s, opacity 0.2s, transform 0.2s;
       cursor: pointer;
       border: 2px solid #eee;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
       margin: 0 !important;
     }
+
     .swiper-pagination-bullet-active {
       background: #222;
       opacity: 1;
@@ -133,7 +134,9 @@
       min-height: 220px;
       border-radius: 16px;
     }
-    &__swiper { padding-bottom: 70px; }
+    &__swiper {
+      padding-bottom: 70px;
+    }
   }
 
   @media (max-width: 600px) {
@@ -146,8 +149,18 @@
       height: 65vw;
       border-radius: 12px;
     }
-    &__title { font-size: 1.2rem; }
-    &__nav   { grid-template-columns: 40px 1fr 40px; gap: 20px; padding: 0 10px; }
-    &__btn   { width: 40px; height: 40px; font-size: 1.8rem; }
+    &__title {
+      font-size: 1.2rem;
+    }
+    &__nav {
+      grid-template-columns: 40px 1fr 40px;
+      gap: 20px;
+      padding: 0 10px;
+    }
+    &__btn {
+      width: 40px;
+      height: 40px;
+      font-size: 1.8rem;
+    }
   }
 }

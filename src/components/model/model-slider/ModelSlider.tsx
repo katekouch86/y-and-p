@@ -4,7 +4,7 @@ import Image from "next/image";
 import React, { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, EffectCoverflow, Keyboard, A11y } from "swiper/modules";
-import type { Swiper as SwiperType } from "swiper"; // ← тип інстансу
+import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";

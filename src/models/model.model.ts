@@ -1,6 +1,7 @@
 import {AvailabilityRange} from "@/models/availability.model";
 import {Schedule} from "@/models/schedule.model";
 import {Pricing} from "@/models/pricing.model";
+
 export type Model = {
     _id?: string;
     slug: string;

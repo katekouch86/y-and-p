@@ -1,3 +1,6 @@
-import type {ModelDetail} from "@/configs/models";
+import type {Model} from "@/models/model.model";
 
-export type ModelHeroProps = { model: ModelDetail; city: string; };
+export type ModelHeroProps = {
+    model: Model;
+    city?: string;
+};

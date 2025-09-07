@@ -1,18 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import "./ModelCard.scss";
+import {ModelCardProps} from "@/types/model-card";
 
-type Props = {
-    src: string | StaticImageData;
-    name: string;
-    href: string;
-    alt?: string;
-    priority?: boolean;
-};
-
-export default function ModelCard({ src, alt = "", name, href, priority }: Props) {
+export default function ModelCard({ src, alt = "", name, href, priority }: ModelCardProps) {
     const isStatic = typeof src !== "string";
 
     return (

@@ -2,13 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import "./Dashboard.scss";
-
-type Summary = {
-    totalModels: number;
-    availableNow: number;
-    milanCount: number;
-    romeCount: number;
-};
+import {Summary} from "@/types/summary";
+import Loading from "@/components/loading/Loading";
 
 const Dashboard = () => {
     const [summary, setSummary] = useState<Summary | null>(null);
@@ -22,7 +17,7 @@ const Dashboard = () => {
         fetchSummary();
     }, []);
 
-    if (!summary) return <p>Loading...</p>;
+    if (!summary) return <Loading/>;
 
     return (
         <div className="dashboard">

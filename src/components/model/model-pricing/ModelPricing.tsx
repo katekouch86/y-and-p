@@ -1,31 +1,40 @@
 "use client";
 
-import type {PriceEntry} from "@/configs/models";
 import "./ModelPricing.scss";
+import {ModelPricingProps} from "@/types/model-pricing";
 
-export default function ModelPricing({pricing, name}: { pricing: PriceEntry[]; name: string }) {
-    const incall = pricing.filter(p => p.type === "incall");
-    const outcall = pricing.filter(p => p.type === "outcall");
+type PriceRow = { duration: string; price: string };
 
-    const Table = ({rows, title}: { rows: PriceEntry[]; title: string }) => (
+export default function ModelPricing({model, pricing}: ModelPricingProps) {
+    const labelName = model?.name ?? "Model";
+
+    const src = model?.pricing ?? pricing;
+
+    const incall: PriceRow[] = Array.isArray(src)
+        ? src
+        : (src?.incall ?? []).map(r => ({duration: r.duration, price: r.price}));
+
+    const outcall: PriceRow[] = Array.isArray(src)
+        ? []
+        : (src?.outcall ?? []).map(r => ({duration: r.duration, price: r.price}));
+
+    const hasRows = incall.length > 0 || outcall.length > 0;
+
+    const Table = ({rows, title}: { rows: PriceRow[]; title: string }) => (
         <div className="model-pricing__card">
             <h3 className="model-pricing__subtitle">{title}</h3>
-            <table className="model-pricing__table" aria-label={`${title} prices for ${name}`}>
+            <table className="model-pricing__table" aria-label={`${title} prices for ${labelName}`}>
                 <thead>
                 <tr>
                     <th>Duration</th>
                     <th>Price</th>
-                    <th>Shots</th>
-                    <th>Notes</th>
                 </tr>
                 </thead>
                 <tbody>
                 {rows.map((r, i) => (
-                    <tr key={i}>
-                        <td>{r.duration}</td>
-                        <td>{r.price}</td>
-                        <td>{r.shots ?? "-"}</td>
-                        <td>{r.notes ?? "-"}</td>
+                    <tr key={`${title}-${r.duration}-${i}`}>
+                        <td>{r.duration || "—"}</td>
+                        <td>{r.price || "—"}</td>
                     </tr>
                 ))}
                 </tbody>
@@ -36,10 +45,15 @@ export default function ModelPricing({pricing, name}: { pricing: PriceEntry[]; n
     return (
         <section className="model-pricing" aria-label="Pricing">
             <h2 className="model-pricing__title">Pricing</h2>
-            <div className="model-pricing__grid">
-                {incall.length > 0 && <Table rows={incall} title="Incall"/>}
-                {outcall.length > 0 && <Table rows={outcall} title="Outcall"/>}
-            </div>
+
+            {hasRows ? (
+                <div className="model-pricing__grid">
+                    {incall.length > 0 && <Table rows={incall} title="Incall"/>}
+                    {outcall.length > 0 && <Table rows={outcall} title="Outcall"/>}
+                </div>
+            ) : (
+                <p className="model-pricing__empty">Pricing is not available yet. Please check back soon.</p>
+            )}
         </section>
     );
 }

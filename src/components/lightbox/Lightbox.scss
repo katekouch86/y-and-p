@@ -43,8 +43,8 @@
     height: 50px;
     border-radius: 25px;
     border: none;
-    background: #fff;
-    color: #111;
+    background: var(--light-color);
+    color: var(--dark-color);
     font-size: 28px;
     cursor: pointer;
     opacity: .9;
@@ -82,14 +82,14 @@
     width: 10px;
     height: 10px;
     border-radius: 5px;
-    background: #777;
+    background: var(--main-text-color);
     border: none;
     cursor: pointer;
     opacity: .8;
     transition: transform .12s, background-color .2s;
 
     &--active {
-      background: #fff;
+      background: var(--light-color);
       transform: scale(1.2);
     }
   }

@@ -3,18 +3,10 @@ import ModelCard from "@/components/model/model-card/ModelCard";
 import {isAvailableNow, canonCity} from "@/utils/availability";
 import {useEffect, useState} from "react";
 import Loading from "@/components/loading/Loading";
-
-interface ModelCatalogItem {
-    _id?: string;
-    slug: string;
-    name: string;
-    photo: string;
-    city: string;
-    availability: { city: string; startDate: string; endDate: string }[];
-}
+import {ModelCatalogItemProps} from "@/types/model-catalog-item";
 
 export default function ModelCatalog({city}: { city: string }) {
-    const [models, setModels] = useState<ModelCatalogItem[]>([]);
+    const [models, setModels] = useState<ModelCatalogItemProps[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -23,7 +15,7 @@ export default function ModelCatalog({city}: { city: string }) {
             const fetchModels = async () => {
                 try {
                     const response = await fetch('/api/models/get-list?city=' + encodeURIComponent(city));
-                    const data: ModelCatalogItem[] = await response.json();
+                    const data: ModelCatalogItemProps[] = await response.json();
                     setModels(data);
                     console.log('Fetched models:', data);
                 } catch {
@@ -34,7 +26,7 @@ export default function ModelCatalog({city}: { city: string }) {
                 }
             };
             fetchModels();
-        }, 1200);
+        }, 1000);
 
         return () => clearTimeout(timer);
     }, [city]);
