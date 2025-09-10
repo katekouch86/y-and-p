@@ -4,6 +4,7 @@ import ModelSlider from "@/components/model/model-slider/ModelSlider";
 import ModelPricing from "@/components/model/model-pricing/ModelPricing";
 import ModelAvailability from "@/components/model/model-availability/ModelAvailability";
 import type { Model } from "@/models/model.model";
+import {getBaseUrl} from "@/utils/getBaseUrl";
 
 export default async function ModelPage({
                                             params,
@@ -12,13 +13,10 @@ export default async function ModelPage({
 }) {
     const { city, slug } = await params;
 
-    const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-
-    const res = await fetch(
-        `${baseUrl}/api/models/${encodeURIComponent(slug)}`,
-        { cache: "no-store" }
-    );
+    const baseUrl = await getBaseUrl();
+    const res = await fetch(`${baseUrl}/api/models/${encodeURIComponent(slug)}`, {
+        cache: "no-store",
+    });
 
     if (!res.ok) return notFound();
 
