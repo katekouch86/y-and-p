@@ -15,7 +15,6 @@ export const HAIR_COLOR_OPTIONS = [
     "Blonde","Brown","Black","Red","Auburn","Chestnut","Grey","White","Dyed","Highlights",
 ] as const;
 
-// Для тумблерів
 export const TOGGLE_FIELDS = [
     { key: "smoking",  label: "Smoking"  },
     { key: "drinking", label: "Drinking" },

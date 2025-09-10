@@ -29,7 +29,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import NextImage from "next/image";
-import { newRequest } from "@/utils/newRequest";
+
 type Availability = { city: string; startDate: string; endDate: string };
 type PriceItem = { duration: string; price: string };
 type Pricing = { incall?: PriceItem[]; outcall?: PriceItem[] };
@@ -130,11 +130,11 @@ const DRESS_SIZE_OPTIONS = [
 const EYE_COLOR_OPTIONS = ["Blue", "Green", "Brown", "Hazel", "Grey", "Amber", "Black"];
 const HAIR_COLOR_OPTIONS = ["Blonde", "Brown", "Black", "Red", "Auburn", "Chestnut", "Grey", "White", "Dyed", "Highlights"];
 
+// Нормалізація шляхів для next/image
 const normalizeSrc = (s?: string) => {
-    if (!s) return "/images/placeholder.jpg"; // ✅ correct root-relative path
-    if (s.startsWith("http") || s.startsWith("blob:") || s.startsWith("data:")) return s;
-    if (s.startsWith("/")) return s;
-    return `/images/${s.replace(/^\/+/, "")}`;
+    if (!s) return "/images/placeholder.jpg";
+    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:") || s.startsWith("data:")) return s;
+    return s.startsWith("/") ? s : `/${s}`;
 };
 
 const toSlug = (s: string) =>
@@ -153,28 +153,18 @@ type UploadApiFile = { url: string };
 type UploadApiResponse = { files?: UploadApiFile[]; message?: string };
 
 /** Завантаження файлів на сервер */
-async function uploadFiles(files: File[], destFolder: string): Promise<string[]> {
-    const validFiles = files.filter((f) => f instanceof File && f.size > 0);
-    if (!validFiles.length) return [];
-
+async function uploadFiles(files: File[], destFolder: string) {
+    if (!files.length) return [] as string[];
     const form = new FormData();
-    validFiles.forEach((f) => form.append("files", f));
-    form.append("dest", destFolder);
+    files.forEach((f) => form.append("files", f));
+    form.append("dest", destFolder); // напр.: models/<slug>
 
-    const res = await fetch("/api/upload", {
-        method: "POST",
-        body: form,
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Upload failed: ${res.status} ${errText}`);
-    }
-
-    const data = (await res.json()) as { urls: string[] };
-    return data.urls;
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const data = (await res.json()) as UploadApiResponse;
+    if (!res.ok) throw new Error(data?.message || "Upload failed");
+    // віддамо масив URLів виду /uploads/models/<slug>/...
+    return (data?.files ?? []).map((x) => x.url);
 }
-
 
 // тумблери
 type BoolKey = Extract<
@@ -459,76 +449,96 @@ export default function ModelUpsertModal({
         setGalleryNewFiles((prev) => prev.filter((_, i) => i !== idx));
     };
 
+    // ---- SUBMIT ----
     const onSubmitClick = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!values) return;
 
+        const slug = (mode === "create" ? values.slug : context?.slug) || "tmp";
+        const dest = `models/${slug}`;
+
+        let uploadedCoverUrl: string | undefined;
+        if (coverFile) {
+            const [u] = await uploadFiles([coverFile], dest);
+            uploadedCoverUrl = u;
+        }
+
+        let uploadedGalleryUrls: string[] = [];
+        if (galleryNewFiles.length) {
+            uploadedGalleryUrls = await uploadFiles(galleryNewFiles, dest);
+        }
+
+        if (mode === "create") {
+            const payload = {
+                slug: values.slug,
+                name: values.name,
+                photo: uploadedCoverUrl ?? (values.photo || undefined),
+                gallery: [...(values.gallery ?? []), ...uploadedGalleryUrls],
+
+                age: values.age,
+                nationality: values.nationality?.trim() || undefined,
+                languages: values.languages ?? [],
+                eyeColor: values.eyeColor,
+                hairColor: values.hairColor,
+                dressSize: values.dressSize,
+                shoeSize: values.shoeSize,
+                heightCm: values.heightCm,
+                weightKg: values.weightKg,
+                cupSize: values.cupSize,
+                smoking: values.smoking ?? false,
+                drinking: values.drinking ?? false,
+                snowParty: values.snowParty ?? false,
+                tattoo: values.tattoo ?? false,
+                piercing: values.piercing ?? false,
+                silicone: values.silicone ?? false,
+
+                availability: values.availability,
+                pricing: values.pricing,
+
+                videoUrl: values.videoUrl?.trim() || undefined,
+            };
+            setSaving(true);
+            setError(null);
+            try {
+                const saved = await onSubmit(payload, "create");
+                onSaved?.(saved);
+                onClose();
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Failed to create");
+            } finally {
+                setSaving(false);
+            }
+            return;
+        }
+
+        const finalPhoto = uploadedCoverUrl ?? values.photo;
+        const finalGallery = [...(values.gallery ?? []), ...uploadedGalleryUrls];
+        setValues((v) => (v ? { ...v, photo: finalPhoto, gallery: finalGallery } : v));
+
+        const payloadBase = {
+            ...diffPayload,
+            ...(uploadedCoverUrl ? { photo: uploadedCoverUrl } : {}),
+            ...(uploadedGalleryUrls.length ? { gallery: finalGallery } : {}),
+        };
+
+        const payload = Object.keys(payloadBase).length ? payloadBase : {};
+        if (!Object.keys(payload).length) {
+            onClose();
+            return;
+        }
+
         setSaving(true);
         setError(null);
-
         try {
-            const slug = toSlug(values.slug || "tmp");
-            const dest = `models/${slug}`;
-
-            const form = new FormData();
-            form.append("slug", slug);
-            form.append("name", values.name?.trim());
-
-            if (values.age) form.append("age", values.age.toString());
-            if (values.nationality) form.append("nationality", values.nationality);
-            if (values.eyeColor) form.append("eyeColor", values.eyeColor);
-            if (values.hairColor) form.append("hairColor", values.hairColor);
-            if (values.dressSize) form.append("dressSize", values.dressSize);
-            if (values.shoeSize) form.append("shoeSize", values.shoeSize.toString());
-            if (values.heightCm) form.append("heightCm", values.heightCm.toString());
-            if (values.weightKg) form.append("weightKg", values.weightKg.toString());
-            if (values.cupSize) form.append("cupSize", values.cupSize);
-            if (values.videoUrl) form.append("videoUrl", values.videoUrl);
-
-            // booleans
-            form.append("smoking", (!!values.smoking).toString());
-            form.append("drinking", (!!values.drinking).toString());
-            form.append("snowParty", (!!values.snowParty).toString());
-            form.append("tattoo", (!!values.tattoo).toString());
-            form.append("piercing", (!!values.piercing).toString());
-            form.append("silicone", (!!values.silicone).toString());
-
-            // arrays
-            form.append("languages", (values.languages ?? []).join(","));
-
-            // JSON strings
-            form.append("availability", JSON.stringify(values.availability ?? []));
-            form.append("pricing", JSON.stringify(values.pricing ?? {}));
-            form.append("schedule", JSON.stringify({})); // if using schedules later
-
-            // file: cover
-            if (coverFile) form.append("photo", coverFile);
-
-            // files: gallery
-            for (const file of galleryNewFiles) {
-                if (file.size > 0) form.append("gallery", file);
-            }
-
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                body: form,
-            });
-
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Upload failed: ${res.status} – ${text}`);
-            }
-
-            const saved = await res.json();
+            const saved = await onSubmit(payload, "edit");
             onSaved?.(saved);
             onClose();
-        } catch (err) {
-            console.error(err)
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to update");
         } finally {
             setSaving(false);
         }
     };
-
 
     // ui helpers
     const coverUrlRaw = coverFile ? coverPreviewUrl : values?.photo || "/images/placeholder.jpg";

@@ -11,7 +11,6 @@ export default function ModelCatalog({city}: { city: string }) {
 
     useEffect(() => {
         setLoading(true);
-        const timer = setTimeout(() => {
             const fetchModels = async () => {
                 try {
                     const response = await fetch('/api/models/get-list?city=' + encodeURIComponent(city));
@@ -26,9 +25,7 @@ export default function ModelCatalog({city}: { city: string }) {
                 }
             };
             fetchModels();
-        }, 1000);
 
-        return () => clearTimeout(timer);
     }, [city]);
 
     if (loading) return <Loading/>
