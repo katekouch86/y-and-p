@@ -31,9 +31,9 @@
 @media (max-width: 768px) {
   .hero-section {
     height: 80vh;
-    padding: 80px 20px;
+    padding: 100px 20px;
     text-align: center;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
 
 
@@ -50,14 +50,17 @@
 @media (max-width: 480px) {
   .hero-section {
     height: 50vh;
-    padding: 80px 10px;
+    padding: 60px 10px;
 
     &__title {
       font-size: 40px;
+      text-align: left;
     }
 
     &__subtitle {
       font-size: 20px;
+      text-align: left;
+
     }
   }
 }

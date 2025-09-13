@@ -16,7 +16,6 @@ export default function ModelCatalog({city}: { city: string }) {
                     const response = await fetch('/api/models/get-list?city=' + encodeURIComponent(city));
                     const data: ModelCatalogItemProps[] = await response.json();
                     setModels(data);
-                    console.log('Fetched models:', data);
                 } catch {
                     setModels([]);
                     console.log('Failed to fetch models');
@@ -33,7 +32,6 @@ export default function ModelCatalog({city}: { city: string }) {
     const items = models.filter(
         (m) => isAvailableNow(m.availability, city) && canonCity(m.city) === canonCity(city)
     );
-    console.log('Filtered items:', items);
 
     return (
         <div className={items.length === 0 ? "model-catalog--empty" : "model-catalog"}>

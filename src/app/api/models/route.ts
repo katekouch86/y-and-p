@@ -29,6 +29,7 @@ const BodySchema = z.object({
 
     photo: z.string().min(1).optional(),
     gallery: z.array(z.string().min(1)).optional(),
+    videos: z.array(z.string().min(1)).optional(),
 
     age: z.number().int().min(18).max(99).optional(),
     nationality: z.string().optional(),
@@ -47,11 +48,10 @@ const BodySchema = z.object({
     piercing: z.boolean().optional(),
     silicone: z.boolean().optional(),
 
+    about: z.string().trim().max(2000).optional(),
     availability: z.array(AvailabilitySchema).min(1),
     pricing: PricingSchema.optional(),
     schedule: z.any().optional(),
-
-    videoUrl: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -83,8 +83,10 @@ export async function POST(req: Request) {
         const doc = await Model.create({
             ...data,
             city: rootCity,
+            about: data.about?.trim(),
             languages: uniq(data.languages),
             gallery: uniq(data.gallery),
+            videos: uniq(data.videos),
         });
 
         return NextResponse.json(doc, { status: 201 });

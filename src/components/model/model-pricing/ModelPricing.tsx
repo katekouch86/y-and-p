@@ -34,7 +34,7 @@ export default function ModelPricing({model, pricing}: ModelPricingProps) {
                 {rows.map((r, i) => (
                     <tr key={`${title}-${r.duration}-${i}`}>
                         <td>{r.duration || "—"}</td>
-                        <td>{r.price || "—"}</td>
+                        <td>{r.price || "—"} €</td>
                     </tr>
                 ))}
                 </tbody>

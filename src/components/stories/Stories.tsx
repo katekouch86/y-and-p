@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import StoryViewer from "../story-viewer/StoryViewer";
 import "./Stories.scss";
 
@@ -11,24 +11,21 @@ type ApiModelListItem = {
     name: string;
     photo?: string;
     gallery?: string[];
+    videos?: string[];                 // ✅ тут є videos
     city?: string;
-    videoUrl?: string;
     availability?: { city: string; startDate: string; endDate: string }[];
 };
 
-export default function Stories({city}: { city?: string }) {
+export default function Stories({ city }: { city?: string }) {
     const [items, setItems] = useState<ApiModelListItem[]>([]);
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     useEffect(() => {
         const run = async () => {
-            const qs = new URLSearchParams({available: "now", limit: "24"});
+            const qs = new URLSearchParams({ available: "now", limit: "24" });
             if (city) qs.set("city", city);
-            const res = await fetch(`/api/models/get-list?${qs.toString()}`, {cache: "no-store"});
-            if (!res.ok) {
-                setItems([]);
-                return;
-            }
+            const res = await fetch(`/api/models/get-list?${qs.toString()}`, { cache: "no-store" });
+            if (!res.ok) return setItems([]);
             const data = await res.json();
             setItems(Array.isArray(data) ? data : []);
         };
@@ -38,8 +35,7 @@ export default function Stories({city}: { city?: string }) {
     if (!items.length) return null;
 
     const normalize = (s?: string) =>
-        !s ? "/images/placeholder.jpg"
-            : (s.startsWith("http") || s.startsWith("/")) ? s : `/${s}`;
+        !s ? "/images/placeholder.jpg" : s.startsWith("http") || s.startsWith("/") ? s : `/${s}`;
 
     return (
         <>
@@ -62,7 +58,7 @@ export default function Stories({city}: { city?: string }) {
                       alt={m.name}
                       fill
                       sizes="80px"
-                      style={{objectFit: "cover"}}
+                      style={{ objectFit: "cover" }}
                       unoptimized
                   />
                 </span>
@@ -75,12 +71,13 @@ export default function Stories({city}: { city?: string }) {
 
             {openIndex !== null && (
                 <StoryViewer
-                    models={items.map(m => ({
+                    models={items.map((m) => ({
                         id: m.slug || m._id || "",
                         slug: m.slug,
                         name: m.name,
                         photo: normalize(m.photo),
-                        videoUrl: m.videoUrl ? normalize(m.videoUrl) : undefined,
+                        // ✅ тільки videos з БД
+                        videos: (m.videos ?? []).map(normalize),
                         gallery: (m.gallery?.length ? m.gallery : [m.photo]).map(normalize),
                         city: (m.city ?? m.availability?.[0]?.city ?? city ?? ""),
                     }))}

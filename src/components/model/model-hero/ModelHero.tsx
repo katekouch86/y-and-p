@@ -64,7 +64,7 @@ export default function ModelHero({ model }: ModelHeroProps) {
                         src={cover}
                         alt={name}
                         fill
-                        sizes="(max-width: 960px) 100vw, 600px"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 520px"
                         priority
                         unoptimized={unoptimized}
                         style={{ objectFit: "cover" }}

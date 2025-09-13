@@ -1,33 +1,17 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Grid,
-    Stack,
-    Button,
-    FormControlLabel,
-    Switch,
-    Divider,
-    Typography,
-    Alert,
-    CircularProgress,
-    Chip,
-    IconButton,
-    Autocomplete,
-    ImageList,
-    ImageListItem,
-    Tooltip,
-    MenuItem,
+    Dialog, DialogTitle, DialogContent, DialogActions,
+    TextField, Grid, Stack, Button, FormControlLabel, Switch,
+    Divider, Typography, Alert, CircularProgress, Chip,
+    IconButton, Autocomplete, ImageList, ImageListItem, Tooltip, MenuItem, Backdrop,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import MovieCreationOutlinedIcon from "@mui/icons-material/MovieCreationOutlined";
 import NextImage from "next/image";
 
 type Availability = { city: string; startDate: string; endDate: string };
@@ -41,6 +25,9 @@ export type ModelValues = {
 
     photo?: string;
     gallery?: string[];
+    videos?: string[];
+
+    about?: string
 
     age?: number;
     nationality?: string;
@@ -61,8 +48,6 @@ export type ModelValues = {
 
     availability: Availability[];
     pricing?: Pricing;
-
-    videoUrl?: string;
 };
 
 type Mode = "create" | "edit";
@@ -82,55 +67,15 @@ type Props = {
 };
 
 const LANGUAGE_OPTIONS = [
-    "English",
-    "Italian",
-    "Ukrainian",
-    "Russian",
-    "Polish",
-    "German",
-    "French",
-    "Spanish",
-    "Portuguese",
-    "Romanian",
-    "Czech",
-    "Slovak",
-    "Hungarian",
-    "Greek",
-    "Turkish",
-    "Dutch",
-    "Swedish",
-    "Norwegian",
-    "Danish",
-    "Finnish",
-    "Arabic",
-    "Hebrew",
-    "Chinese",
-    "Japanese",
-    "Korean",
+    "English","Italian","Ukrainian","Russian","Polish","German","French","Spanish","Portuguese",
+    "Romanian","Czech","Slovak","Hungarian","Greek","Turkish","Dutch","Swedish","Norwegian",
+    "Danish","Finnish","Arabic","Hebrew","Chinese","Japanese","Korean",
 ];
 
-// dropdown options
-const DRESS_SIZE_OPTIONS = [
-    "XXS",
-    "XS",
-    "S",
-    "M",
-    "L",
-    "XL",
-    "XXL",
-    "EU 32",
-    "EU 34",
-    "EU 36",
-    "EU 38",
-    "EU 40",
-    "EU 42",
-    "EU 44",
-    "EU 46",
-];
-const EYE_COLOR_OPTIONS = ["Blue", "Green", "Brown", "Hazel", "Grey", "Amber", "Black"];
-const HAIR_COLOR_OPTIONS = ["Blonde", "Brown", "Black", "Red", "Auburn", "Chestnut", "Grey", "White", "Dyed", "Highlights"];
+const DRESS_SIZE_OPTIONS = ["XXS","XS","S","M","L","XL","XXL","EU 32","EU 34","EU 36","EU 38","EU 40","EU 42","EU 44","EU 46"];
+const EYE_COLOR_OPTIONS = ["Blue","Green","Brown","Hazel","Grey","Amber","Black"];
+const HAIR_COLOR_OPTIONS = ["Blonde","Brown","Black","Red","Auburn","Chestnut","Grey","White","Dyed","Highlights"];
 
-// Нормалізація шляхів для next/image
 const normalizeSrc = (s?: string) => {
     if (!s) return "/images/placeholder.jpg";
     if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:") || s.startsWith("data:")) return s;
@@ -138,57 +83,40 @@ const normalizeSrc = (s?: string) => {
 };
 
 const toSlug = (s: string) =>
-    s
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
+    s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 
-/** Локальний прев’ю з File */
 const filePreview = (f: File | null) => (f ? URL.createObjectURL(f) : "");
 
-/** Типи відповіді бекенда аплоада */
 type UploadApiFile = { url: string };
 type UploadApiResponse = { files?: UploadApiFile[]; message?: string };
 
-/** Завантаження файлів на сервер */
 async function uploadFiles(files: File[], destFolder: string) {
     if (!files.length) return [] as string[];
     const form = new FormData();
     files.forEach((f) => form.append("files", f));
-    form.append("dest", destFolder); // напр.: models/<slug>
+    form.append("dest", destFolder); // e.g. models/<slug>/...
 
-    const res = await fetch("/api/upload", { method: "POST", body: form });
+    const res = await fetch("/api/upload", {method: "POST", body: form});
     const data = (await res.json()) as UploadApiResponse;
     if (!res.ok) throw new Error(data?.message || "Upload failed");
-    // віддамо масив URLів виду /uploads/models/<slug>/...
     return (data?.files ?? []).map((x) => x.url);
 }
 
-// тумблери
 type BoolKey = Extract<
     keyof ModelValues,
     "smoking" | "drinking" | "snowParty" | "tattoo" | "piercing" | "silicone"
 >;
 const TOGGLE_FIELDS: ReadonlyArray<{ key: BoolKey; label: string }> = [
-    { key: "smoking", label: "Smoking" },
-    { key: "drinking", label: "Drinking" },
-    { key: "snowParty", label: "Snow party" },
-    { key: "tattoo", label: "Tattoo" },
-    { key: "piercing", label: "Piercing" },
-    { key: "silicone", label: "Silicone" },
+    {key: "smoking", label: "Smoking"},
+    {key: "drinking", label: "Drinking"},
+    {key: "snowParty", label: "Snow party"},
+    {key: "tattoo", label: "Tattoo"},
+    {key: "piercing", label: "Piercing"},
+    {key: "silicone", label: "Silicone"},
 ];
 
 export default function ModelUpsertModal({
-                                             open,
-                                             mode,
-                                             onClose,
-                                             context,
-                                             initialValues,
-                                             fetchUrlBuilder,
-                                             onSubmit,
-                                             onSaved,
+                                             open, mode, onClose, context, initialValues, fetchUrlBuilder, onSubmit, onSaved,
                                          }: Props) {
     const [values, setValues] = useState<ModelValues | null>(null);
     const [loading, setLoading] = useState(false);
@@ -197,27 +125,25 @@ export default function ModelUpsertModal({
     const originalRef = useRef<ModelValues | null>(null);
     const [slugTouched, setSlugTouched] = useState(false);
 
-    // cover upload state
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreviewUrl, setCoverPreviewUrl] = useState<string>("");
 
-    // натуральні розміри cover для next/image
     const [coverWH, setCoverWH] = useState<{ w: number; h: number } | null>(null);
 
-    // gallery upload state
     const [galleryNewFiles, setGalleryNewFiles] = useState<File[]>([]);
+    const [videosNewFiles, setVideosNewFiles] = useState<File[]>([]); // << NEW
 
     const title = mode === "create" ? "Add new model" : `Edit: ${context?.title ?? context?.slug ?? ""}`;
+    const hasCover = Boolean(coverFile || values?.photo);
 
     useEffect(() => {
-        // cleanup object URLs on unmount / close
         return () => {
             if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
             galleryNewFiles.forEach((f) => URL.revokeObjectURL(URL.createObjectURL(f)));
+            videosNewFiles.forEach((f) => URL.revokeObjectURL(URL.createObjectURL(f)));
         };
-    }, [coverPreviewUrl, galleryNewFiles]);
+    }, [coverPreviewUrl, galleryNewFiles, videosNewFiles]);
 
-    // ініціалізація форми
     useEffect(() => {
         const init = async () => {
             if (!open) return;
@@ -226,22 +152,24 @@ export default function ModelUpsertModal({
                 name: "",
                 photo: "",
                 gallery: [],
+                videos: [],
                 languages: [],
                 nationality: "",
-                availability: [{ city: "", startDate: "", endDate: "" }],
-                pricing: { incall: [], outcall: [] },
+                availability: [{city: "", startDate: "", endDate: ""}],
+                pricing: {incall: [], outcall: []},
                 smoking: false,
                 drinking: false,
                 snowParty: false,
+                about: "",
                 tattoo: false,
                 piercing: false,
                 silicone: false,
-                videoUrl: "",
             };
 
             setCoverFile(null);
             setCoverPreviewUrl("");
             setGalleryNewFiles([]);
+            setVideosNewFiles([]);
 
             if (mode === "create") {
                 const merged: ModelValues = {
@@ -251,8 +179,10 @@ export default function ModelUpsertModal({
                     name: initialValues?.name ?? "",
                     languages: initialValues?.languages ?? [],
                     gallery: initialValues?.gallery ?? [],
+                    videos: initialValues?.videos ?? [],
+                    about: initialValues?.about ?? "",
                     availability:
-                        initialValues?.availability?.length ? [{ ...initialValues.availability[0] }] : baseline.availability,
+                        initialValues?.availability?.length ? [{...initialValues.availability[0]}] : baseline.availability,
                     pricing: {
                         incall: initialValues?.pricing?.incall ?? [],
                         outcall: initialValues?.pricing?.outcall ?? [],
@@ -265,13 +195,12 @@ export default function ModelUpsertModal({
                 return;
             }
 
-            // EDIT
             if (context?.slug) {
                 try {
                     setLoading(true);
                     setError(null);
                     const url = fetchUrlBuilder ? fetchUrlBuilder(context.slug) : `/api/models/${context.slug}`;
-                    const res = await fetch(url, { cache: "no-store" });
+                    const res = await fetch(url, {cache: "no-store"});
                     const full = await res.json();
                     if (!res.ok) throw new Error((full && (full.message as string)) || "Failed to load model");
 
@@ -280,6 +209,8 @@ export default function ModelUpsertModal({
                         ...full,
                         languages: (full.languages as string[] | undefined) ?? [],
                         gallery: (full.gallery as string[] | undefined) ?? [],
+                        videos:  (full.videos  as string[] | undefined) ?? [],
+                        about: full.about ?? "",
                         availability: full.availability?.length ? [{ ...full.availability[0] }] : baseline.availability,
                         pricing: {
                             incall: full.pricing?.incall ?? [],
@@ -296,13 +227,14 @@ export default function ModelUpsertModal({
                 return;
             }
 
-            // edit без slug — беремо initialValues
             const merged: ModelValues = {
                 ...baseline,
                 ...initialValues,
                 languages: initialValues?.languages ?? [],
                 gallery: initialValues?.gallery ?? [],
-                availability: initialValues?.availability?.length ? [{ ...initialValues.availability[0] }] : baseline.availability,
+                videos: initialValues?.videos ?? [],
+                about: initialValues?.about ?? "",
+                availability: initialValues?.availability?.length ? [{...initialValues.availability[0]}] : baseline.availability,
                 pricing: {
                     incall: initialValues?.pricing?.incall ?? [],
                     outcall: initialValues?.pricing?.outcall ?? [],
@@ -321,30 +253,15 @@ export default function ModelUpsertModal({
         if (!from || !to) return {};
         const diff: Record<string, unknown> = {};
         const shallow: (keyof ModelValues)[] = [
-            "name",
-            "photo",
-            "age",
-            "nationality",
-            "eyeColor",
-            "hairColor",
-            "dressSize",
-            "shoeSize",
-            "heightCm",
-            "weightKg",
-            "cupSize",
-            "smoking",
-            "drinking",
-            "snowParty",
-            "tattoo",
-            "piercing",
-            "silicone",
-            "videoUrl",
+            "name","photo","age","nationality","eyeColor","hairColor","dressSize","shoeSize",
+            "heightCm","weightKg","cupSize","smoking","drinking","snowParty","tattoo","piercing","silicone", "about",
         ];
         for (const k of shallow) if (from[k] !== to[k]) diff[k as string] = to[k];
 
         const jsonEq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
         if (!jsonEq(from.languages ?? [], to.languages ?? [])) diff.languages = to.languages ?? [];
         if (!jsonEq(from.gallery ?? [], to.gallery ?? [])) diff.gallery = to.gallery ?? [];
+        if (!jsonEq(from.videos ?? [], to.videos ?? [])) diff.videos = to.videos ?? []; // << NEW
         if (!jsonEq(from.availability ?? [], to.availability ?? [])) diff.availability = to.availability ?? [];
 
         // pricing
@@ -361,38 +278,37 @@ export default function ModelUpsertModal({
     const diffPayload = useMemo(() => computeDiff(originalRef.current, values), [values]);
 
     const set = <K extends keyof ModelValues>(key: K, val: ModelValues[K]) =>
-        setValues((v) => (v ? { ...v, [key]: val } : v));
+        setValues((v) => (v ? {...v, [key]: val} : v));
 
     const setAvailability = (part: Partial<Availability>) =>
-        setValues((v) => (v ? { ...v, availability: [{ ...v.availability[0], ...part }] } : v));
+        setValues((v) => (v ? {...v, availability: [{...v.availability[0], ...part}]} : v));
 
-    // pricing helpers
     const addPriceRow = (kind: "incall" | "outcall") =>
         setValues((v) => {
             if (!v) return v;
-            const next = { ...(v.pricing ?? { incall: [], outcall: [] }) };
-            next[kind] = [...(next[kind] ?? []), { duration: "", price: "" }];
-            return { ...v, pricing: next };
+            const next = {...(v.pricing ?? {incall: [], outcall: []})};
+            next[kind] = [...(next[kind] ?? []), {duration: "", price: ""}];
+            return {...v, pricing: next};
         });
 
     const setPriceRow = (kind: "incall" | "outcall", i: number, patch: Partial<PriceItem>) =>
         setValues((v) => {
             if (!v) return v;
-            const next = { ...(v.pricing ?? { incall: [], outcall: [] }) };
+            const next = {...(v.pricing ?? {incall: [], outcall: []})};
             const arr = [...(next[kind] ?? [])];
-            arr[i] = { ...arr[i], ...patch };
+            arr[i] = {...arr[i], ...patch};
             next[kind] = arr;
-            return { ...v, pricing: next };
+            return {...v, pricing: next};
         });
 
     const removePriceRow = (kind: "incall" | "outcall", i: number) =>
         setValues((v) => {
             if (!v) return v;
-            const next = { ...(v.pricing ?? { incall: [], outcall: [] }) };
+            const next = {...(v.pricing ?? {incall: [], outcall: []})};
             const arr = [...(next[kind] ?? [])];
             arr.splice(i, 1);
             next[kind] = arr;
-            return { ...v, pricing: next };
+            return {...v, pricing: next};
         });
 
     const canSubmit = useMemo(() => {
@@ -411,13 +327,12 @@ export default function ModelUpsertModal({
         }
         setValues((prev) => {
             if (!prev) return prev;
-            const next = { ...prev, name: v };
+            const next = {...prev, name: v};
             if (!slugTouched) next.slug = toSlug(v);
             return next;
         });
     };
 
-    // ---- COVER handlers ----
     const onPickCover = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         if (!f) return;
@@ -436,7 +351,6 @@ export default function ModelUpsertModal({
         setCoverPreviewUrl("");
     };
 
-    // ---- GALLERY handlers ----
     const onPickGallery = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (!files.length) return;
@@ -449,23 +363,39 @@ export default function ModelUpsertModal({
         setGalleryNewFiles((prev) => prev.filter((_, i) => i !== idx));
     };
 
-    // ---- SUBMIT ----
+    const onPickVideos = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        setVideosNewFiles((prev) => [...prev, ...files]);
+    };
+    const removeVideoExisting = (url: string) => {
+        set("videos", (values?.videos ?? []).filter((x) => x !== url));
+    };
+    const removeVideoNew = (idx: number) => {
+        setVideosNewFiles((prev) => prev.filter((_, i) => i !== idx));
+    };
+
     const onSubmitClick = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!values) return;
 
         const slug = (mode === "create" ? values.slug : context?.slug) || "tmp";
-        const dest = `models/${slug}`;
+        const baseDest = `models/${slug}`;
 
         let uploadedCoverUrl: string | undefined;
         if (coverFile) {
-            const [u] = await uploadFiles([coverFile], dest);
+            const [u] = await uploadFiles([coverFile], `${baseDest}`);
             uploadedCoverUrl = u;
         }
 
         let uploadedGalleryUrls: string[] = [];
         if (galleryNewFiles.length) {
-            uploadedGalleryUrls = await uploadFiles(galleryNewFiles, dest);
+            uploadedGalleryUrls = await uploadFiles(galleryNewFiles, `${baseDest}/gallery`);
+        }
+
+        let uploadedVideoUrls: string[] = [];
+        if (videosNewFiles.length) {
+            uploadedVideoUrls = await uploadFiles(videosNewFiles, `${baseDest}/videos`); // << NEW
         }
 
         if (mode === "create") {
@@ -474,6 +404,8 @@ export default function ModelUpsertModal({
                 name: values.name,
                 photo: uploadedCoverUrl ?? (values.photo || undefined),
                 gallery: [...(values.gallery ?? []), ...uploadedGalleryUrls],
+                videos:  [...(values.videos  ?? []), ...uploadedVideoUrls],
+                about: values.about?.trim() || undefined,
 
                 age: values.age,
                 nationality: values.nationality?.trim() || undefined,
@@ -494,8 +426,6 @@ export default function ModelUpsertModal({
 
                 availability: values.availability,
                 pricing: values.pricing,
-
-                videoUrl: values.videoUrl?.trim() || undefined,
             };
             setSaving(true);
             setError(null);
@@ -513,12 +443,15 @@ export default function ModelUpsertModal({
 
         const finalPhoto = uploadedCoverUrl ?? values.photo;
         const finalGallery = [...(values.gallery ?? []), ...uploadedGalleryUrls];
-        setValues((v) => (v ? { ...v, photo: finalPhoto, gallery: finalGallery } : v));
+        const finalVideos  = [...(values.videos  ?? []), ...uploadedVideoUrls];
+
+        setValues((v) => (v ? {...v, photo: finalPhoto, gallery: finalGallery, videos: finalVideos} : v));
 
         const payloadBase = {
             ...diffPayload,
-            ...(uploadedCoverUrl ? { photo: uploadedCoverUrl } : {}),
-            ...(uploadedGalleryUrls.length ? { gallery: finalGallery } : {}),
+            ...(uploadedCoverUrl ? {photo: finalPhoto} : {}),
+            ...(uploadedGalleryUrls.length ? {gallery: finalGallery} : {}),
+            ...(uploadedVideoUrls.length  ? {videos:  finalVideos}  : {}), // << NEW
         };
 
         const payload = Object.keys(payloadBase).length ? payloadBase : {};
@@ -540,11 +473,9 @@ export default function ModelUpsertModal({
         }
     };
 
-    // ui helpers
     const coverUrlRaw = coverFile ? coverPreviewUrl : values?.photo || "/images/placeholder.jpg";
     const coverUrl = normalizeSrc(coverUrlRaw);
 
-    // Завантажуємо натуральні розміри для next/image (щоб не ставити width/height=0)
     useEffect(() => {
         setCoverWH(null);
         if (!coverUrl) return;
@@ -554,7 +485,7 @@ export default function ModelUpsertModal({
         imgEl.onload = () => {
             const w = imgEl.naturalWidth || 800;
             const h = imgEl.naturalHeight || 600;
-            setCoverWH({ w, h });
+            setCoverWH({w, h});
         };
     }, [coverUrl]);
 
@@ -562,25 +493,18 @@ export default function ModelUpsertModal({
         coverUrl.startsWith("http://") || coverUrl.startsWith("https://") || coverUrl.startsWith("blob:") || coverUrl.startsWith("data:");
 
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" PaperProps={{ sx: { overflowX: "hidden" } }}>
-            <DialogTitle
-                sx={{
-                    px: 3,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                }}
-            >
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" PaperProps={{sx: {overflowX: "hidden"}}}>
+            <DialogTitle sx={{ px: 3, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 {title}
                 <IconButton onClick={onClose} size="small">
-                    <CloseIcon />
+                    <CloseIcon/>
                 </IconButton>
             </DialogTitle>
 
-            <DialogContent dividers sx={{ px: 3, overflowX: "hidden" }}>
+            <DialogContent dividers sx={{px: 3, overflowX: "hidden"}}>
                 {loading ? (
                     <Stack alignItems="center" py={4}>
-                        <CircularProgress />
+                        <CircularProgress/>
                     </Stack>
                 ) : !values ? (
                     <Alert severity="error">{error || "No data"}</Alert>
@@ -593,40 +517,57 @@ export default function ModelUpsertModal({
                                     Cover photo
                                 </Typography>
 
-                                {/* Центрована, збереження пропорцій, натуральні розміри */}
-                                <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-                                    <NextImage
-                                        src={coverUrl}
-                                        alt="cover"
-                                        width={coverWH?.w ?? 800}
-                                        height={coverWH?.h ?? 600}
-                                        unoptimized={coverIsExternalOrBlob}
-                                        priority
-                                        sizes="(max-width: 900px) 100vw, 800px"
-                                        style={{
-                                            maxWidth: "100%",
-                                            height: "auto",
-                                            borderRadius: 12,
-                                            display: "block",
+                                {hasCover ? (
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                                        <NextImage
+                                            src={coverUrl}
+                                            alt="Cover photo"
+                                            width={coverWH?.w ?? 800}
+                                            height={coverWH?.h ?? 600}
+                                            unoptimized={coverIsExternalOrBlob}
+                                            priority
+                                            sizes="(max-width: 900px) 100vw, 800px"
+                                            style={{ maxWidth: "100%", height: "auto", borderRadius: 12, display: "block" }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <Stack
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        sx={{
+                                            width: "100%",
+                                            height: 320,
+                                            borderRadius: 2,
+                                            border: "1px dashed",
+                                            borderColor: "divider",
+                                            bgcolor: "background.default",
                                         }}
-                                    />
-                                </div>
+                                        spacing={1.5}
+                                    >
+                                        <PhotoCameraIcon sx={{ fontSize: 48, opacity: 0.6 }} />
+                                        <Typography variant="body2" color="text.secondary">
+                                            No cover uploaded yet
+                                        </Typography>
+
+                                        <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon />}>
+                                            Upload cover
+                                            <input hidden accept="image/*" type="file" onChange={onPickCover} />
+                                        </Button>
+                                    </Stack>
+                                )}
 
                                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-                                    <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon />}>
-                                        Upload cover
-                                        <input hidden accept="image/*" type="file" onChange={onPickCover} />
-                                    </Button>
-                                    {values.gallery?.length ? (
+                                    {!!values.gallery?.length && (
                                         <Tooltip title="Set from first gallery image (click a thumbnail to choose any)">
                       <span>
-                        <Button variant="text" onClick={() => setCoverFromGallery(values.gallery![0])} startIcon={<CheckCircleIcon />}>
+                        <Button variant="text" onClick={() => setCoverFromGallery(values.gallery![0])}
+                                startIcon={<CheckCircleIcon />}>
                           Use first gallery as cover
                         </Button>
                       </span>
                                         </Tooltip>
-                                    ) : null}
-                                    {(values.photo || coverFile) && (
+                                    )}
+                                    {hasCover && (
                                         <Button variant="text" color="error" onClick={removeCover} startIcon={<DeleteOutlineIcon />}>
                                             Remove cover
                                         </Button>
@@ -634,14 +575,15 @@ export default function ModelUpsertModal({
                                 </Stack>
                             </Stack>
 
-                            <Divider />
+                            <Divider/>
 
                             {/* BASIC FIELDS */}
                             <Grid container spacing={2}>
                                 {mode === "create" ? (
                                     <>
                                         <Grid item xs={12} sm={6}>
-                                            <TextField label="Name *" fullWidth value={values.name} onChange={(e) => handleNameChange(e.target.value)} />
+                                            <TextField label="Name *" fullWidth value={values.name}
+                                                       onChange={(e) => handleNameChange(e.target.value)}/>
                                         </Grid>
                                         <Grid item xs={12} sm={6}>
                                             <TextField
@@ -657,90 +599,63 @@ export default function ModelUpsertModal({
                                     </>
                                 ) : (
                                     <Grid item xs={12}>
-                                        <TextField label="Name" fullWidth value={values.name} onChange={(e) => set("name", e.target.value)} />
+                                        <TextField label="Name" fullWidth value={values.name}
+                                                   onChange={(e) => set("name", e.target.value)}/>
                                     </Grid>
                                 )}
 
                                 <Grid item xs={12} sm={6}>
-                                    <TextField label="Nationality" fullWidth value={values.nationality ?? ""} onChange={(e) => set("nationality", e.target.value)} />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField label="Video URL" fullWidth value={values.videoUrl ?? ""} onChange={(e) => set("videoUrl", e.target.value)} />
+                                    <TextField label="Nationality" fullWidth value={values.nationality ?? ""}
+                                               onChange={(e) => set("nationality", e.target.value)}/>
                                 </Grid>
 
+                                {/* removed Video URL field */}
+
                                 <Grid item xs={12} sm={3}>
-                                    <TextField label="Age" type="number" fullWidth value={values.age ?? ""} onChange={(e) => set("age", Number(e.target.value) || undefined)} />
+                                    <TextField label="Age" type="number" fullWidth value={values.age ?? ""}
+                                               onChange={(e) => set("age", Number(e.target.value) || undefined)}/>
                                 </Grid>
 
                                 {/* dropdowns */}
                                 <Grid item xs={12} sm={3}>
-                                    <TextField select label="Dress size" fullWidth value={values.dressSize ?? ""} onChange={(e) => set("dressSize", e.target.value)}>
-                                        <MenuItem value="" disabled>
-                                            Select…
-                                        </MenuItem>
-                                        {DRESS_SIZE_OPTIONS.map((opt) => (
-                                            <MenuItem key={opt} value={opt}>
-                                                {opt}
-                                            </MenuItem>
-                                        ))}
+                                    <TextField select label="Dress size" fullWidth value={values.dressSize ?? ""}
+                                               onChange={(e) => set("dressSize", e.target.value)}>
+                                        <MenuItem value="" disabled>Select…</MenuItem>
+                                        {DRESS_SIZE_OPTIONS.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
                                     </TextField>
                                 </Grid>
 
                                 <Grid item xs={12} sm={3}>
-                                    <TextField select label="Eye color" fullWidth value={values.eyeColor ?? ""} onChange={(e) => set("eyeColor", e.target.value)}>
-                                        <MenuItem value="" disabled>
-                                            Select…
-                                        </MenuItem>
-                                        {EYE_COLOR_OPTIONS.map((opt) => (
-                                            <MenuItem key={opt} value={opt}>
-                                                {opt}
-                                            </MenuItem>
-                                        ))}
+                                    <TextField select label="Eye color" fullWidth value={values.eyeColor ?? ""}
+                                               onChange={(e) => set("eyeColor", e.target.value)}>
+                                        <MenuItem value="" disabled>Select…</MenuItem>
+                                        {EYE_COLOR_OPTIONS.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
                                     </TextField>
                                 </Grid>
 
                                 <Grid item xs={12} sm={3}>
-                                    <TextField select label="Hair color" fullWidth value={values.hairColor ?? ""} onChange={(e) => set("hairColor", e.target.value)}>
-                                        <MenuItem value="" disabled>
-                                            Select…
-                                        </MenuItem>
-                                        {HAIR_COLOR_OPTIONS.map((opt) => (
-                                            <MenuItem key={opt} value={opt}>
-                                                {opt}
-                                            </MenuItem>
-                                        ))}
+                                    <TextField select label="Hair color" fullWidth value={values.hairColor ?? ""}
+                                               onChange={(e) => set("hairColor", e.target.value)}>
+                                        <MenuItem value="" disabled>Select…</MenuItem>
+                                        {HAIR_COLOR_OPTIONS.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
                                     </TextField>
                                 </Grid>
 
                                 <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Height (cm)"
-                                        type="number"
-                                        fullWidth
-                                        value={values.heightCm ?? ""}
-                                        onChange={(e) => set("heightCm", Number(e.target.value) || undefined)}
-                                    />
+                                    <TextField label="Height (cm)" type="number" fullWidth value={values.heightCm ?? ""}
+                                               onChange={(e) => set("heightCm", Number(e.target.value) || undefined)} />
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Weight (kg)"
-                                        type="number"
-                                        fullWidth
-                                        value={values.weightKg ?? ""}
-                                        onChange={(e) => set("weightKg", Number(e.target.value) || undefined)}
-                                    />
+                                    <TextField label="Weight (kg)" type="number" fullWidth value={values.weightKg ?? ""}
+                                               onChange={(e) => set("weightKg", Number(e.target.value) || undefined)} />
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
-                                    <TextField
-                                        label="Shoe size"
-                                        type="number"
-                                        fullWidth
-                                        value={values.shoeSize ?? ""}
-                                        onChange={(e) => set("shoeSize", Number(e.target.value) || undefined)}
-                                    />
+                                    <TextField label="Shoe size" type="number" fullWidth value={values.shoeSize ?? ""}
+                                               onChange={(e) => set("shoeSize", Number(e.target.value) || undefined)} />
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
-                                    <TextField label="Cup size" fullWidth value={values.cupSize ?? ""} onChange={(e) => set("cupSize", e.target.value)} />
+                                    <TextField label="Cup size" fullWidth value={values.cupSize ?? ""}
+                                               onChange={(e) => set("cupSize", e.target.value)} />
                                 </Grid>
 
                                 {/* Languages */}
@@ -757,17 +672,17 @@ export default function ModelUpsertModal({
                                         }}
                                         renderTags={(value: readonly string[], getTagProps) =>
                                             value.map((option: string, index: number) => (
-                                                <Chip variant="outlined" label={option} {...getTagProps({ index })} key={option} />
+                                                <Chip variant="outlined" label={option} {...getTagProps({index})} key={option}/>
                                             ))
                                         }
-                                        renderInput={(params) => <TextField {...params} label="Languages" placeholder="Select or type…" />}
+                                        renderInput={(params) => <TextField {...params} label="Languages" placeholder="Select or type…"/>}
                                     />
                                 </Grid>
 
                                 {/* Toggles */}
                                 <Grid item xs={12}>
                                     <Stack direction="row" spacing={2} flexWrap="wrap">
-                                        {TOGGLE_FIELDS.map(({ key, label }) => (
+                                        {TOGGLE_FIELDS.map(({key, label}) => (
                                             <FormControlLabel
                                                 key={key}
                                                 control={<Switch checked={Boolean(values[key])} onChange={(e) => set(key, e.target.checked)} />}
@@ -778,7 +693,19 @@ export default function ModelUpsertModal({
                                 </Grid>
                             </Grid>
 
-                            <Divider />
+                            <Divider/>
+
+                            <Typography variant="subtitle1" fontWeight={700}>About</Typography>
+                            <TextField
+                                label="Short bio / about"
+                                fullWidth
+                                multiline
+                                minRows={4}
+                                maxRows={12}
+                                value={values.about ?? ""}
+                                onChange={(e) => set("about", e.target.value)}
+                                placeholder="Write a short bio, specialties, vibe, notes, etc."
+                            />
 
                             {/* Availability */}
                             <Typography variant="subtitle1" fontWeight={700}>
@@ -786,77 +713,50 @@ export default function ModelUpsertModal({
                             </Typography>
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        label="City"
-                                        fullWidth
-                                        value={values.availability[0].city}
-                                        onChange={(e) => setAvailability({ city: e.target.value })}
-                                    />
+                                    <TextField label="City" fullWidth value={values.availability[0].city}
+                                               onChange={(e) => setAvailability({city: e.target.value})} />
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        label="Start date"
-                                        type="date"
-                                        fullWidth
-                                        value={values.availability[0].startDate}
-                                        onChange={(e) => setAvailability({ startDate: e.target.value })}
-                                        InputLabelProps={{ shrink: true }}
-                                    />
+                                    <TextField label="Start date" type="date" fullWidth value={values.availability[0].startDate}
+                                               onChange={(e) => setAvailability({startDate: e.target.value})}
+                                               InputLabelProps={{shrink: true}} />
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        label="End date"
-                                        type="date"
-                                        fullWidth
-                                        value={values.availability[0].endDate}
-                                        onChange={(e) => setAvailability({ endDate: e.target.value })}
-                                        InputLabelProps={{ shrink: true }}
-                                    />
+                                    <TextField label="End date" type="date" fullWidth value={values.availability[0].endDate}
+                                               onChange={(e) => setAvailability({endDate: e.target.value})}
+                                               InputLabelProps={{shrink: true}} />
                                 </Grid>
                             </Grid>
 
-                            <Divider />
+                            <Divider/>
 
                             {/* PRICING */}
-                            <Typography variant="subtitle1" fontWeight={700}>
-                                Pricing
-                            </Typography>
+                            <Typography variant="subtitle1" fontWeight={700}>Pricing</Typography>
                             <Grid container spacing={2}>
                                 {/* INCALL */}
                                 <Grid item xs={12} md={6}>
                                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-                                        <Typography variant="body1" fontWeight={600}>
-                                            Incall
-                                        </Typography>
-                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("incall")}>
-                                            + Add
-                                        </Button>
+                                        <Typography variant="body1" fontWeight={600}>Incall</Typography>
+                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("incall")}>+ Add</Button>
                                     </Stack>
                                     <Stack spacing={1}>
                                         {(values.pricing?.incall ?? []).map((row, i) => (
                                             <Grid key={`incall-${i}`} container spacing={1}>
                                                 <Grid item xs={5}>
-                                                    <TextField
-                                                        label="Duration"
-                                                        fullWidth
-                                                        value={row.duration}
-                                                        onChange={(e) => setPriceRow("incall", i, { duration: e.target.value })}
-                                                    />
+                                                    <TextField label="Duration" fullWidth value={row.duration}
+                                                               onChange={(e) => setPriceRow("incall", i, {duration: e.target.value})}/>
                                                 </Grid>
                                                 <Grid item xs={5}>
-                                                    <TextField label="Price" fullWidth value={row.price} onChange={(e) => setPriceRow("incall", i, { price: e.target.value })} />
+                                                    <TextField label="Price" fullWidth value={row.price}
+                                                               onChange={(e) => setPriceRow("incall", i, {price: e.target.value})} />
                                                 </Grid>
-                                                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                                                    <Button color="error" onClick={() => removePriceRow("incall", i)}>
-                                                        Remove
-                                                    </Button>
+                                                <Grid item xs={2} sx={{display: "flex", alignItems: "center"}}>
+                                                    <Button color="error" onClick={() => removePriceRow("incall", i)}>Remove</Button>
                                                 </Grid>
                                             </Grid>
                                         ))}
                                         {!(values.pricing?.incall?.length) && (
-                                            <Typography variant="body2" color="text.secondary">
-                                                No incall items
-                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">No incall items</Typography>
                                         )}
                                     </Stack>
                                 </Grid>
@@ -864,89 +764,66 @@ export default function ModelUpsertModal({
                                 {/* OUTCALL */}
                                 <Grid item xs={12} md={6}>
                                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
-                                        <Typography variant="body1" fontWeight={600}>
-                                            Outcall
-                                        </Typography>
-                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("outcall")}>
-                                            + Add
-                                        </Button>
+                                        <Typography variant="body1" fontWeight={600}>Outcall</Typography>
+                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("outcall")}>+ Add</Button>
                                     </Stack>
                                     <Stack spacing={1}>
                                         {(values.pricing?.outcall ?? []).map((row, i) => (
                                             <Grid key={`outcall-${i}`} container spacing={1}>
                                                 <Grid item xs={5}>
-                                                    <TextField
-                                                        label="Duration"
-                                                        fullWidth
-                                                        value={row.duration}
-                                                        onChange={(e) => setPriceRow("outcall", i, { duration: e.target.value })}
-                                                    />
+                                                    <TextField label="Duration" fullWidth value={row.duration}
+                                                               onChange={(e) => setPriceRow("outcall", i, {duration: e.target.value})}/>
                                                 </Grid>
                                                 <Grid item xs={5}>
-                                                    <TextField label="Price" fullWidth value={row.price} onChange={(e) => setPriceRow("outcall", i, { price: e.target.value })} />
+                                                    <TextField label="Price" fullWidth value={row.price}
+                                                               onChange={(e) => setPriceRow("outcall", i, {price: e.target.value})}/>
                                                 </Grid>
-                                                <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-                                                    <Button color="error" onClick={() => removePriceRow("outcall", i)}>
-                                                        Remove
-                                                    </Button>
+                                                <Grid item xs={2} sx={{display: "flex", alignItems: "center"}}>
+                                                    <Button color="error" onClick={() => removePriceRow("outcall", i)}>Remove</Button>
                                                 </Grid>
                                             </Grid>
                                         ))}
                                         {!(values.pricing?.outcall?.length) && (
-                                            <Typography variant="body2" color="text.secondary">
-                                                No outcall items
-                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">No outcall items</Typography>
                                         )}
                                     </Stack>
                                 </Grid>
                             </Grid>
 
-                            <Divider />
+                            <Divider/>
 
                             {/* GALLERY */}
                             <Stack spacing={1}>
                                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="subtitle1" fontWeight={700}>
-                                        Gallery
-                                    </Typography>
+                                    <Typography variant="subtitle1" fontWeight={700}>Gallery</Typography>
                                     <Stack direction="row" spacing={1}>
-                                        <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon />}>
+                                        <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon/>}>
                                             Add images
-                                            <input hidden accept="image/*" type="file" multiple onChange={onPickGallery} />
+                                            <input hidden accept="image/*" type="file" multiple onChange={onPickGallery}/>
                                         </Button>
                                     </Stack>
                                 </Stack>
 
                                 {(values.gallery ?? []).length > 0 && (
                                     <>
-                                        <Typography variant="caption" color="text.secondary">
-                                            Existing
-                                        </Typography>
-                                        <ImageList cols={4} gap={8} sx={{ m: 0, overflow: "hidden" }}>
+                                        <Typography variant="caption" color="text.secondary">Existing</Typography>
+                                        <ImageList cols={4} gap={8} sx={{m: 0, overflow: "hidden"}}>
                                             {(values.gallery ?? []).map((rawUrl) => {
                                                 const url = normalizeSrc(rawUrl);
                                                 const unopt = url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:");
                                                 return (
-                                                    <ImageListItem key={url} sx={{ position: "relative" }}>
-                                                        <div
-                                                            style={{
-                                                                position: "relative",
-                                                                width: "100%",
-                                                                paddingTop: "100%",
-                                                                borderRadius: 8,
-                                                                overflow: "hidden",
-                                                            }}
-                                                        >
-                                                            <NextImage src={url} alt="gallery" fill unoptimized={unopt} style={{ objectFit: "cover" }} />
-                                                            <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 6, right: 6 }}>
+                                                    <ImageListItem key={url} sx={{position: "relative"}}>
+                                                        <div style={{ position: "relative", width: "100%", paddingTop: "100%", borderRadius: 8, overflow: "hidden" }}>
+                                                            <NextImage src={url} alt="gallery" fill unoptimized={unopt} style={{objectFit: "cover"}}/>
+                                                            <Stack direction="row" spacing={1} sx={{position: "absolute", top: 6, right: 6}}>
                                                                 <Tooltip title="Set as cover">
                                                                     <IconButton size="small" color="primary" onClick={() => setCoverFromGallery(url)}>
-                                                                        <CheckCircleIcon fontSize="small" />
+                                                                        <CheckCircleIcon fontSize="small"/>
                                                                     </IconButton>
                                                                 </Tooltip>
                                                                 <Tooltip title="Remove">
                                                                     <IconButton size="small" color="error" onClick={() => removeGalleryExisting(rawUrl)}>
-                                                                        <DeleteOutlineIcon fontSize="small" />
+                                                                        <DeleteOutlineIcon fontSize="small"/>
                                                                     </IconButton>
                                                                 </Tooltip>
                                                             </Stack>
@@ -960,28 +837,18 @@ export default function ModelUpsertModal({
 
                                 {galleryNewFiles.length > 0 && (
                                     <>
-                                        <Typography variant="caption" color="text.secondary">
-                                            New (to upload)
-                                        </Typography>
-                                        <ImageList cols={4} gap={8} sx={{ m: 0, overflow: "hidden" }}>
+                                        <Typography variant="caption" color="text.secondary">New (to upload)</Typography>
+                                        <ImageList cols={4} gap={8} sx={{m: 0, overflow: "hidden"}}>
                                             {galleryNewFiles.map((f, idx) => {
                                                 const u = URL.createObjectURL(f);
                                                 return (
-                                                    <ImageListItem key={idx} sx={{ position: "relative" }}>
-                                                        <div
-                                                            style={{
-                                                                position: "relative",
-                                                                width: "100%",
-                                                                paddingTop: "100%",
-                                                                borderRadius: 8,
-                                                                overflow: "hidden",
-                                                            }}
-                                                        >
-                                                            <NextImage src={u} alt={`new-${idx}`} fill unoptimized style={{ objectFit: "cover" }} />
-                                                            <Stack direction="row" spacing={1} sx={{ position: "absolute", top: 6, right: 6 }}>
+                                                    <ImageListItem key={idx} sx={{position: "relative"}}>
+                                                        <div style={{ position: "relative", width: "100%", paddingTop: "100%", borderRadius: 8, overflow: "hidden" }}>
+                                                            <NextImage src={u} alt={`new-${idx}`} fill unoptimized style={{objectFit: "cover"}}/>
+                                                            <Stack direction="row" spacing={1} sx={{position: "absolute", top: 6, right: 6}}>
                                                                 <Tooltip title="Remove">
                                                                     <IconButton size="small" color="error" onClick={() => removeGalleryNew(idx)}>
-                                                                        <DeleteOutlineIcon fontSize="small" />
+                                                                        <DeleteOutlineIcon fontSize="small"/>
                                                                     </IconButton>
                                                                 </Tooltip>
                                                             </Stack>
@@ -994,25 +861,80 @@ export default function ModelUpsertModal({
                                 )}
                             </Stack>
 
+                            <Divider/>
+
+                            {/* VIDEOS */}
+                            <Stack spacing={1}>
+                                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                    <Typography variant="subtitle1" fontWeight={700}>Videos</Typography>
+                                    <Stack direction="row" spacing={1}>
+                                        <Button component="label" variant="outlined" startIcon={<MovieCreationOutlinedIcon/>}>
+                                            Add videos
+                                            <input hidden accept="video/*" type="file" multiple onChange={onPickVideos}/>
+                                        </Button>
+                                    </Stack>
+                                </Stack>
+
+                                {(values.videos ?? []).length > 0 && (
+                                    <>
+                                        <Typography variant="caption" color="text.secondary">Existing</Typography>
+                                        <Grid container spacing={2}>
+                                            {(values.videos ?? []).map((url) => (
+                                                <Grid item xs={12} sm={6} md={4} key={url}>
+                                                    <Stack spacing={0.5}>
+                                                        <video src={url} controls style={{ width: "100%", borderRadius: 8 }} />
+                                                        <Button size="small" color="error" onClick={() => removeVideoExisting(url)}>
+                                                            Remove
+                                                        </Button>
+                                                    </Stack>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </>
+                                )}
+
+                                {videosNewFiles.length > 0 && (
+                                    <>
+                                        <Typography variant="caption" color="text.secondary">New (to upload)</Typography>
+                                        <Grid container spacing={2}>
+                                            {videosNewFiles.map((f, idx) => {
+                                                const u = URL.createObjectURL(f);
+                                                return (
+                                                    <Grid item xs={12} sm={6} md={4} key={idx}>
+                                                        <Stack spacing={0.5}>
+                                                            <video src={u} controls style={{ width: "100%", borderRadius: 8 }} />
+                                                            <Button size="small" color="error" onClick={() => removeVideoNew(idx)}>
+                                                                Remove
+                                                            </Button>
+                                                        </Stack>
+                                                    </Grid>
+                                                );
+                                            })}
+                                        </Grid>
+                                    </>
+                                )}
+                            </Stack>
+
                             {error && <Alert severity="error">{error}</Alert>}
                         </Stack>
                     </form>
                 )}
             </DialogContent>
 
-            <DialogActions sx={{ px: 3 }}>
-                <Button variant="outlined" onClick={onClose}>
-                    Cancel
-                </Button>
+            <DialogActions sx={{px: 3}}>
+                <Button variant="outlined" onClick={onClose}>Cancel</Button>
                 <Button
                     variant="contained"
                     onClick={onSubmitClick}
                     disabled={saving || loading || !canSubmit}
-                    startIcon={saving ? <CircularProgress size={18} color="inherit" /> : undefined}
+                    startIcon={saving ? <CircularProgress size={18} color="inherit"/> : undefined}
                 >
                     {mode === "create" ? "Create" : "Save changes"}
                 </Button>
             </DialogActions>
+            <Backdrop open={saving} sx={{ color: '#fff', zIndex: (t) => t.zIndex.modal + 1 }}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </Dialog>
     );
 }

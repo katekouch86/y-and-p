@@ -26,13 +26,15 @@ export type Model = {
     piercing?: boolean;
     silicone?: boolean;
 
+    about?: string;
+
     city: string;
     availability?: AvailabilityRange[];
     schedule?: Schedule;
 
     photo?: string;
     gallery?: string[];
-    videoUrl?: string;
+    videos?: string[];
 
     pricing?: Pricing;
     createdAt?: string;

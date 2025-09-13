@@ -12,11 +12,11 @@ export default function CompanyInfoBar() {
                 <header className="company-info__head" aria-label="Company info header">
 
                     <h1 id="company-info__title" className="company-info__title">
-                        Y&P Agency — Luxury Companionship in Italy
+                        Companionship in Italy
                     </h1>
-                    <p className="company-info__lead">
+                    <h2 className="company-info__lead">
                         The reference point for classy experiences and unforgettable moments in Italy.
-                    </p>
+                    </h2>
                 </header>
                 <div className="company-info__body">
                     <p className="company-info__text">
@@ -39,16 +39,19 @@ export default function CompanyInfoBar() {
 
             <div className="company-info__bottom">
                 <div className="company-info__body">
+                    <h2 className="company-info__lead company-info__lead--bottom">Exclusive Telegram Channel And Lotalty Program</h2>
                     <p className="company-info__text company-info__text--bottom">
-                        At Y&P Agency, we believe that every encounter should be unique: share your desires with us, and
-                        we will introduce you to the lady who best embodies them, always ensuring discretion and
-                        reliability. Our models offer not only beauty but also personality and charisma, creating an
-                        authentic and natural connection.
+                        We have created an exclusive Telegram channel, designed for those who wish to stay constantly
+                        updated with the utmost discretion and receive information in advance. Inside, you will find all
+                        the latest updates and have the opportunity to make priority bookings before the official
+                        announcements are published.
                     </p>
                     <p className="company-info__text company-info__text--bottom">
-                        Available 24/7, our luxury escorts are ready to turn your stay in Italy into a truly special
-                        experience. With Y&P Agency, you choose elegance, confidentiality, and pleasure without
-                        compromise
+                        In addition, channel members can enjoy dedicated benefits, including a <span className="company-info__text--bold">special 40% promotion </span>
+                        starting from the tenth appointment.
+                    </p>
+                    <p className="company-info__text company-info__text--bottom">
+                        A private, refined environment, tailored for those who appreciate a privileged experience.
                     </p>
                 </div>
                 <figure className="company-info__media">

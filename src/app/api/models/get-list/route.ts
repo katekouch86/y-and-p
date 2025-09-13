@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
         const available = searchParams.get("available");
         const limit = Number(searchParams.get("limit") ?? 0);
 
-        const projection = "slug name photo gallery videoUrl city availability updatedAt";
+        const projection = "slug name photo gallery videoUrl city videos availability updatedAt";
 
         const availableNow =
             available === "now" || available === "1" || available === "true";
