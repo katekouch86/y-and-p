@@ -91,7 +91,6 @@ const ModelList = () => {
       if (!res.ok) {
         throw new Error(data?.message || "Failed to delete model");
       }
-      // remove from list
       setModels((prev) => prev.filter((m) => m.slug !== slug));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to delete model");

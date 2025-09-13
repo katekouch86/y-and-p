@@ -113,7 +113,8 @@
     background: var(--primary-color);
     color: var(--light-color);
     border: 1px solid var(--primary-color);
-    transition: transform .08s ease, box-shadow .2s ease;
+    transition: all 0.2s;
+    cursor: pointer;
 
     &:hover {
       transform: translateY(-1px);

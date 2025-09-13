@@ -9,7 +9,7 @@ import Image from "next/image";
 
 const Login = () => {
     const [value, setValue] = useState<string>('');
-    const [error, setError] = useState<string>(''); // error використовується
+    const [error, setError] = useState<string>('');
     const router = useRouter();
 
     const handleSubmit = async (e: FormEvent) => {

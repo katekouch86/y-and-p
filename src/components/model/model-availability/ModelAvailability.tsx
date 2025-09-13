@@ -9,7 +9,7 @@ export default function ModelAvailability({ model }: AvailabilityProps) {
     const now = new Date();
 
     return (
-        <section className="model-availability" aria-label="Availability">
+        <section id="availability" className="model-availability" aria-label="Availability">
             <h2 className="model-availability__title">Availability</h2>
 
             {items.length === 0 ? (

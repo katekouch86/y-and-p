@@ -11,7 +11,7 @@ type ApiModelListItem = {
     name: string;
     photo?: string;
     gallery?: string[];
-    videos?: string[];                 // ✅ тут є videos
+    videos?: string[];
     city?: string;
     availability?: { city: string; startDate: string; endDate: string }[];
 };
@@ -76,7 +76,6 @@ export default function Stories({ city }: { city?: string }) {
                         slug: m.slug,
                         name: m.name,
                         photo: normalize(m.photo),
-                        // ✅ тільки videos з БД
                         videos: (m.videos ?? []).map(normalize),
                         gallery: (m.gallery?.length ? m.gallery : [m.photo]).map(normalize),
                         city: (m.city ?? m.availability?.[0]?.city ?? city ?? ""),

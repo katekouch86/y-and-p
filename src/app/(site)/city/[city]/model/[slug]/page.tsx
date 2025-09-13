@@ -3,7 +3,7 @@ import ModelHero from "@/components/model/model-hero/ModelHero";
 import ModelSlider from "@/components/model/model-slider/ModelSlider";
 import ModelPricing from "@/components/model/model-pricing/ModelPricing";
 import ModelAvailability from "@/components/model/model-availability/ModelAvailability";
-import ModelVideo from "@/components/model/model-video/ModelVideo"; // <— додай
+import ModelVideo from "@/components/model/model-video/ModelVideo";
 import type { Model } from "@/models/model.model";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 

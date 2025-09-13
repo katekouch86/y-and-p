@@ -94,7 +94,7 @@ async function uploadFiles(files: File[], destFolder: string) {
     if (!files.length) return [] as string[];
     const form = new FormData();
     files.forEach((f) => form.append("files", f));
-    form.append("dest", destFolder); // e.g. models/<slug>/...
+    form.append("dest", destFolder);
 
     const res = await fetch("/api/upload", {method: "POST", body: form});
     const data = (await res.json()) as UploadApiResponse;

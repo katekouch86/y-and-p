@@ -2,14 +2,21 @@
 
 import React from "react";
 import "./ModelVideo.scss";
-import {ModelVideoProps} from "@/types/model-video";
+import { ModelVideoProps } from "@/types/model-video";
 
 export default function ModelVideo({ name, city, videoUrl, about }: ModelVideoProps) {
     if (!videoUrl) return null;
 
     const aboutText =
         (about && about.trim()) ||
-        `${name}: профессиональная гимнастка, любит белое вино и тёплые объятия. Всегда энергична, с харизмой, которая чувствуется даже через экран. С ней каждая встреча превращается в уникальное впечатление.`;
+        `${name}: professional gymnast, loves white wine and warm hugs. Always energetic, with a charisma that can be felt even through the screen. Every meeting with her turns into a unique experience.`;
+
+    const handleScroll = () => {
+        const el = document.getElementById("availability");
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    };
 
     return (
         <section className="model-video" aria-label={`${name} video`}>
@@ -18,7 +25,12 @@ export default function ModelVideo({ name, city, videoUrl, about }: ModelVideoPr
                     <h2 className="model-video__title">Video</h2>
                     <p className="model-video__subtitle">
                         A short look at <strong>{name}</strong>
-                        {city ? <> in <span className="model-video__city">{city}</span></> : null}
+                        {city ? (
+                            <>
+                                {" "}
+                                in <span className="model-video__city">{city}</span>
+                            </>
+                        ) : null}
                     </p>
                 </header>
 
@@ -41,9 +53,9 @@ export default function ModelVideo({ name, city, videoUrl, about }: ModelVideoPr
                             <h3 className="model-video__infotitle">{name}</h3>
                             <p className="model-video__about">{aboutText}</p>
 
-                            <div className="model-video__cta">
-                                <a className="model-video__btn">Check availability</a>
-                            </div>
+                            <button className="model-video__btn" onClick={handleScroll}>
+                                Check availability
+                            </button>
                         </div>
                     </aside>
                 </div>
