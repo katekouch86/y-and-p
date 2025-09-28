@@ -7,7 +7,11 @@ import ModelVideo from "@/components/model/model-video/ModelVideo";
 import type { Model } from "@/models/model.model";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 
-export default async function ModelPage({ params }: { params: Promise<{ city: string; slug: string }> }) {
+export default async function ModelPage({
+                                            params,
+                                        }: {
+    params: Promise<{ city: string; slug: string }>;
+}) {
     const { city, slug } = await params;
 
     const baseUrl = await getBaseUrl();
@@ -15,11 +19,22 @@ export default async function ModelPage({ params }: { params: Promise<{ city: st
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return notFound();
 
-    const model: Model & { about?: string; agency?: string; videos?: string[] } = await res.json();
-    if (model.city && model.city.toLowerCase() !== city.toLowerCase()) return notFound();
+    const model: Model & {
+        about?: string;
+        agency?: string;
+        videos?: string[];
+    } = await res.json();
 
-    const gallery = [model.photo, ...(model.gallery ?? [])].filter(Boolean) as string[];
+    const currentCity = model.availability?.[0]?.city || model.city;
+    if (currentCity && currentCity.toLowerCase() !== city.toLowerCase()) {
+        return notFound();
+    }
+
+    const gallery = [model.photo, ...(model.gallery ?? [])].filter(
+        Boolean
+    ) as string[];
     const videoUrl = model.videos?.[0] || "";
+
     return (
         <main>
             <ModelHero model={model} />
@@ -27,7 +42,7 @@ export default async function ModelPage({ params }: { params: Promise<{ city: st
             {videoUrl ? (
                 <ModelVideo
                     name={model.name}
-                    city={model.city}
+                    city={currentCity}
                     videoUrl={videoUrl}
                     about={model?.about}
                 />

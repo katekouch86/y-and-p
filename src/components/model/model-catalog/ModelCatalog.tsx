@@ -1,36 +1,56 @@
+"use client";
+
 import "./ModelCatalog.scss";
 import ModelCard from "@/components/model/model-card/ModelCard";
-import {isAvailableNow, canonCity} from "@/utils/availability";
-import {useEffect, useState} from "react";
+import { isAvailableNow, canonCity } from "@/utils/availability";
+import { useEffect, useState } from "react";
 import Loading from "@/components/loading/Loading";
-import {ModelCatalogItemProps} from "@/types/model-catalog-item";
+import { ModelCatalogItemProps } from "@/types/model-catalog-item";
 
-export default function ModelCatalog({city}: { city: string }) {
+export default function ModelCatalog({ city }: { city: string }) {
     const [models, setModels] = useState<ModelCatalogItemProps[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         setLoading(true);
-            const fetchModels = async () => {
-                try {
-                    const response = await fetch('/api/models/get-list?city=' + encodeURIComponent(city));
-                    const data: ModelCatalogItemProps[] = await response.json();
-                    setModels(data);
-                } catch {
-                    setModels([]);
-                    console.log('Failed to fetch models');
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchModels();
-
+        const fetchModels = async () => {
+            try {
+                const response = await fetch(
+                    "/api/models/get-list?city=" + encodeURIComponent(city)
+                );
+                const data: ModelCatalogItemProps[] = await response.json();
+                setModels(data);
+            } catch {
+                setModels([]);
+                console.log("Failed to fetch models");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchModels();
     }, [city]);
 
-    if (loading) return <Loading/>
+    if (loading) return <Loading />;
 
-    const items = models.filter(
-        (m) => isAvailableNow(m.availability, city) && canonCity(m.city) === canonCity(city)
+    // DEBUG: подивись, які дані приходять з бекенду
+    console.log(
+        "Fetched models for city:",
+        city,
+        models.map((m) => ({
+            name: m.name,
+            cityFromApi: m.city,
+            availability: m.availability,
+            canonFromApi: canonCity(m.city),
+            canonCurrent: canonCity(city),
+            availableNow: isAvailableNow(m.availability, city),
+        }))
+    );
+
+    // 👉 Спрощена перевірка:
+    // залишаємо лише перевірку доступності по датах.
+    // Якщо хочеш — можна взагалі прибрати фільтр і віддавати всі моделі, що приходять з API.
+    const items = models.filter((m) =>
+        isAvailableNow(m.availability, city)
     );
 
     return (

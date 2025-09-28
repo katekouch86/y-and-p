@@ -6,6 +6,7 @@ import type { Model as ModelDTO } from "@/models/model.model";
 export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ slug: string }> };
+type AvailabilityItem = { city?: string; [key: string]: unknown };
 
 const uniq = (arr?: unknown[]) =>
     Array.from(new Set((arr ?? []).filter(Boolean))) as string[];
@@ -77,8 +78,18 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
             else $set[k] = v;
         }
 
+        if (Array.isArray(body.availability) && body.availability.length > 0) {
+            const rootCity = (body.availability[0] as AvailabilityItem)?.city;
+            if (rootCity) {
+                $set.city = rootCity;
+            }
+        }
+
         if (Object.keys($set).length === 1) {
-            return NextResponse.json({ message: "Nothing to update" }, { status: 400 });
+            return NextResponse.json(
+                { message: "Nothing to update" },
+                { status: 400 }
+            );
         }
 
         const updated = await Model.findOneAndUpdate(
@@ -102,7 +113,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     }
 }
 
-export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
+export async function DELETE(
+    _req: NextRequest,
+    ctx: Ctx
+): Promise<NextResponse> {
     try {
         await dbConnect();
         const { slug } = await ctx.params;
