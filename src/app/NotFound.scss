@@ -1,0 +1,48 @@
+.not-found {
+  &__wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 80px); // якщо Header ~80px
+    text-align: center;
+    gap: 16px;
+    background: #f9fafb;
+    color: #111827;
+    padding: 0 16px;
+  }
+
+  &__title {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--primary-color, #ef4444);
+    animation: not-found-pulse 1.5s infinite;
+  }
+
+  &__text {
+    font-size: 1.5rem;
+    color: #374151;
+  }
+
+  &__button {
+    margin-top: 24px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--primary-color, #ef4444);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #b91c1c; // темніший відтінок для hover
+    }
+  }
+}
+
+@keyframes not-found-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}

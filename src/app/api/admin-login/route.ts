@@ -1,10 +1,21 @@
-import {NextResponse} from "next/server";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-    const {password} = await request.json();
+    const { password } = await request.json();
 
     if (password === process.env.ADMIN_PASSWORD) {
-        return NextResponse.json({message: 'Login successful'});
+        const res = NextResponse.json({ message: "Login successful" });
+
+        // Для локального тесту прибираємо secure
+        res.cookies.set("admin", "true", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 60 * 60,
+            path: "/",
+        });
+        return res;
     }
-    return NextResponse.json({message: 'Invalid password'}, {status: 401});
+
+    return NextResponse.json({ message: "Invalid password" }, { status: 401 });
 }
