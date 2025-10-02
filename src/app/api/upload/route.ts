@@ -25,27 +25,30 @@ export async function POST(req: Request) {
 
         const form = await req.formData();
         const dest = String(form.get("dest") || "uploads");
-        const files = form.getAll("files") as File[];
+        const files = form.getAll("files") as Blob[];
 
         if (!files.length) {
             return NextResponse.json({ message: "No files" }, { status: 400 });
         }
 
-        const uploadOne = (file: File) =>
+        const uploadOne = (file: Blob, idx: number) =>
             new Promise<string>(async (resolve, reject) => {
-                const buffer = Buffer.from(await file.arrayBuffer());
-                const base = file.name.replace(/\.[^.]+$/, "");
-                const public_id = `${base}-${Date.now()}`;
+                try {
+                    const buffer = Buffer.from(await file.arrayBuffer());
+                    const public_id = `story-${Date.now()}-${idx}`;
 
-                cloudinary.uploader
-                    .upload_stream(
-                        { folder: dest, resource_type: "auto", public_id },
-                        (err, res) => (err || !res ? reject(err) : resolve(res.secure_url))
-                    )
-                    .end(buffer);
+                    cloudinary.uploader
+                        .upload_stream(
+                            { folder: dest, resource_type: "auto", public_id },
+                            (err, res) => (err || !res ? reject(err) : resolve(res.secure_url))
+                        )
+                        .end(buffer);
+                } catch (err) {
+                    reject(err);
+                }
             });
 
-        const urls = await Promise.all(files.map(uploadOne));
+        const urls = await Promise.all(files.map((f, i) => uploadOne(f, i)));
 
         return NextResponse.json(
             { files: urls.map((url) => ({ url })) },

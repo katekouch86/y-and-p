@@ -6,7 +6,6 @@ export async function POST(request: Request) {
     if (password === process.env.ADMIN_PASSWORD) {
         const res = NextResponse.json({ message: "Login successful" });
 
-        // Для локального тесту прибираємо secure
         res.cookies.set("admin", "true", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",

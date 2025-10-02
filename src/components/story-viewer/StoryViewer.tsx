@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 import React, {
     useCallback,
     useEffect,
@@ -9,18 +9,30 @@ import React, {
     useRef,
     useState,
     memo,
-} from 'react';
-import {canonCity} from '@/utils/availability';
-import './StoryViewer.scss';
-import type {Slide, StoryViewerProps} from '@/types/story-viewer';
+} from "react";
+import { canonCity } from "@/utils/availability";
+import "./StoryViewer.scss";
+
+type Story = { _id: string; url: string; type: "image" | "video" };
 
 type WithMedia = {
     id?: string;
     slug: string;
     name: string;
     photo?: string;
-    gallery?: string[];
-    videos?: string[];
+    city?: string;
+    stories?: Story[];
+};
+
+type Slide = {
+    type: "image" | "video";
+    src: string;
+};
+
+type StoryViewerProps = {
+    models: WithMedia[];
+    startModelIndex: number;
+    onClose: () => void;
     city?: string;
 };
 
@@ -29,23 +41,9 @@ type PreparedItem = {
     slides: Slide[];
 };
 
-function normalize(raw?: string | { src: string }): string {
-    if (!raw) return '/images/placeholder.jpg';
-    const src = typeof raw === 'string' ? raw : raw.src;
-    if (!src) return '/images/placeholder.jpg';
-    return !src.startsWith('http') && !src.startsWith('/') ? `/${src}` : src;
-}
-
-function isVideoUrl(s: string): boolean {
-    return /\.(mp4|webm|ogg|ogv|mov|qt)(\?.*)?$/i.test(s);
-}
-
-function getModelCity(m: unknown): string {
-    if (m && typeof m === 'object' && 'city' in m) {
-        const city = (m as { city?: string }).city;
-        return typeof city === 'string' ? city : '';
-    }
-    return '';
+function normalize(raw?: string): string {
+    if (!raw) return "/images/placeholder.jpg";
+    return raw.startsWith("http") || raw.startsWith("/") ? raw : `/${raw}`;
 }
 
 const Bar = memo(function Bar({
@@ -59,7 +57,7 @@ const Bar = memo(function Bar({
         <span className="story__bar">
       <span
           className="story__bar-fill"
-          style={{width: filled ? '100%' : `${activeWidth}%`}}
+          style={{ width: filled ? "100%" : `${activeWidth}%` }}
       />
     </span>
     );
@@ -74,36 +72,11 @@ export default function StoryViewer({
     const prepared: PreparedItem[] = useMemo(() => {
         return models
             .map((m) => {
-                const uniq = new Set<string>();
-
-                if ('videos' in m && Array.isArray(m.videos)) {
-                    for (const v of m.videos) uniq.add(normalize(v));
-                }
-
-                if ('photo' in m && typeof m.photo === 'string') {
-                    uniq.add(normalize(m.photo));
-                }
-
-                if ('gallery' in m && Array.isArray(m.gallery)) {
-                    for (const g of m.gallery) uniq.add(normalize(g));
-                }
-
-                const slides: Slide[] = Array.from(uniq).map((src) => ({
-                    type: isVideoUrl(src) ? 'video' : 'image',
-                    src,
+                const slides: Slide[] = (m.stories ?? []).map((s) => ({
+                    type: s.type,
+                    src: normalize(s.url),
                 }));
-
-                const model: WithMedia = {
-                    id: 'id' in m && typeof m.id === 'string' ? m.id : undefined,
-                    slug: m.slug,
-                    name: m.name,
-                    photo: 'photo' in m ? m.photo : undefined,
-                    gallery: 'gallery' in m ? m.gallery : undefined,
-                    videos: 'videos' in m ? m.videos : undefined,
-                    city: 'city' in m ? m.city : undefined,
-                };
-
-                return {model, slides};
+                return { model: m, slides };
             })
             .filter((x) => x.slides.length > 0);
     }, [models]);
@@ -124,38 +97,26 @@ export default function StoryViewer({
     const current = hasSlides ? prepared[mi] : null;
     const total = current?.slides.length ?? 0;
 
-    const [pendingClose, setPendingClose] = useState(false);
-    useEffect(() => {
-        if (!pendingClose) return;
-        Promise.resolve().then(() => {
-            onClose();
-            setPendingClose(false);
-        });
-    }, [pendingClose, onClose]);
-
     const [progress, setProgress] = useState(0);
     const timerRef = useRef<number | null>(null);
 
     const [videoDurMs, setVideoDurMs] = useState<number>(8000);
     const baseDurImage = 4000;
     const dur =
-        current?.slides[si]?.type === 'video' ? videoDurMs : baseDurImage;
+        current?.slides[si]?.type === "video" ? videoDurMs : baseDurImage;
 
     const next = useCallback(() => {
-        if (!hasSlides || total === 0) {
-            setPendingClose(true);
-            return;
-        }
+        if (!hasSlides || total === 0) return onClose();
         setSi((prevSi) => {
             if (prevSi + 1 < total) return prevSi + 1;
             setMi((prevMi) => {
                 if (prevMi + 1 < prepared.length) return prevMi + 1;
-                setPendingClose(true);
+                onClose();
                 return prevMi;
             });
             return 0;
         });
-    }, [hasSlides, total, prepared.length]);
+    }, [hasSlides, total, prepared.length, onClose]);
 
     const prev = useCallback(() => {
         if (!hasSlides || total === 0) return;
@@ -197,48 +158,39 @@ export default function StoryViewer({
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setPendingClose(true);
-            if (e.key === 'ArrowRight') next();
-            if (e.key === 'ArrowLeft') prev();
+            if (e.key === "Escape") onClose();
+            if (e.key === "ArrowRight") next();
+            if (e.key === "ArrowLeft") prev();
         };
-        document.addEventListener('keydown', onKey);
+        document.addEventListener("keydown", onKey);
         const prevOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
+        document.body.style.overflow = "hidden";
         return () => {
-            document.removeEventListener('keydown', onKey);
+            document.removeEventListener("keydown", onKey);
             document.body.style.overflow = prevOverflow;
         };
-    }, [next, prev]);
+    }, [next, prev, onClose]);
 
     if (!hasSlides || !current) return null;
 
     const m = current.model;
     const slide = current.slides[si];
-    const cityForLink = canonCity(city ?? getModelCity(m));
+    const cityForLink = canonCity(city ?? m.city ?? "");
 
     return (
-        <div
-            className="story"
-            role="dialog"
-            aria-modal="true"
-            onClick={() => setPendingClose(true)}
-        >
+        <div className="story" role="dialog" aria-modal="true" onClick={onClose}>
             <div className="story__wrap" onClick={(e) => e.stopPropagation()}>
                 <div className="story__top">
                     <div className="story__bars">
                         {current.slides.map((_, i) => (
-                            <Bar
-                                key={i}
-                                filled={i < si}
-                                activeWidth={i === si ? progress : 0}
-                            />
+                            <Bar key={i} filled={i < si} activeWidth={i === si ? progress : 0} />
                         ))}
                     </div>
                     <button
                         className="story__close"
                         type="button"
                         aria-label="Close"
-                        onClick={() => setPendingClose(true)}
+                        onClick={onClose}
                     >
                         ×
                     </button>
@@ -246,7 +198,7 @@ export default function StoryViewer({
 
                 <div className="story__media">
                     <div className="story__box">
-                        {slide.type === 'image' ? (
+                        {slide.type === "image" ? (
                             <Image
                                 src={slide.src}
                                 alt={m.name}
@@ -254,7 +206,7 @@ export default function StoryViewer({
                                 sizes="(max-width: 768px) 90vw, 540px"
                                 priority
                                 unoptimized
-                                style={{objectFit: 'contain'}}
+                                style={{ objectFit: "contain" }}
                             />
                         ) : (
                             <video

@@ -8,7 +8,7 @@ const normalizeSrc = (s?: string) => {
     return s.startsWith("/") ? s : `/${s}`;
 };
 
-export default function ModelHero({ model }: ModelHeroProps) {
+export default function ModelHero({model}: ModelHeroProps) {
     const {
         name,
         photo,
@@ -34,15 +34,15 @@ export default function ModelHero({ model }: ModelHeroProps) {
     const unoptimized = cover.startsWith("http") || cover.startsWith("data:") || cover.startsWith("blob:");
 
     const stats: Array<{ label: string; value?: string | number }> = [
-        { label: "Age", value: age },
-        { label: "Nationality", value: nationality },
-        { label: "Height", value: heightCm ? `${heightCm} cm` : undefined },
-        { label: "Weight", value: weightKg ? `${weightKg} kg` : undefined },
-        { label: "Dress size", value: dressSize },
-        { label: "Shoe size", value: typeof shoeSize === "number" ? String(shoeSize) : shoeSize },
-        { label: "Cup size", value: cupSize },
-        { label: "Eye color", value: eyeColor },
-        { label: "Hair color", value: hairColor },
+        {label: "Age", value: age},
+        {label: "Nationality", value: nationality},
+        {label: "Height", value: heightCm ? `${heightCm} cm` : undefined},
+        {label: "Weight", value: weightKg ? `${weightKg} kg` : undefined},
+        {label: "Dress size", value: dressSize},
+        {label: "Shoe size", value: typeof shoeSize === "number" ? String(shoeSize) : shoeSize},
+        {label: "Cup size", value: cupSize},
+        {label: "Eye color", value: eyeColor},
+        {label: "Hair color", value: hairColor},
     ].filter((x) => x.value);
 
     const languageTags = (languages ?? []).filter(Boolean);
@@ -67,7 +67,7 @@ export default function ModelHero({ model }: ModelHeroProps) {
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 520px"
                         priority
                         unoptimized={unoptimized}
-                        style={{ objectFit: "cover" }}
+                        style={{objectFit: "cover"}}
                     />
                 </div>
             </div>

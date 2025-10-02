@@ -32,7 +32,6 @@ export default function ModelCatalog({ city }: { city: string }) {
 
     if (loading) return <Loading />;
 
-    // DEBUG: подивись, які дані приходять з бекенду
     console.log(
         "Fetched models for city:",
         city,
@@ -46,9 +45,6 @@ export default function ModelCatalog({ city }: { city: string }) {
         }))
     );
 
-    // 👉 Спрощена перевірка:
-    // залишаємо лише перевірку доступності по датах.
-    // Якщо хочеш — можна взагалі прибрати фільтр і віддавати всі моделі, що приходять з API.
     const items = models.filter((m) =>
         isAvailableNow(m.availability, city)
     );

@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
         const available = searchParams.get("available");
         const limit = Number(searchParams.get("limit") ?? 0);
 
-        const projection = "slug name photo gallery videoUrl city videos availability updatedAt";
+        const projection = "slug name photo gallery videos city availability stories updatedAt";
 
         const availableNow =
             available === "now" || available === "1" || available === "true";
@@ -42,9 +42,6 @@ export async function GET(req: NextRequest) {
     } catch (e: unknown) {
         let message = "Failed to fetch models";
         if (e instanceof Error) message = e.message;
-        return NextResponse.json(
-            { message },
-            { status: 500 }
-        );
+        return NextResponse.json({ message }, { status: 500 });
     }
 }

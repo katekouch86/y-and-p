@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
         const doc = await Model.findOne(
             { slug },
-            "_id slug name about photo gallery videos age nationality languages eyeColor hairColor dressSize shoeSize heightCm weightKg cupSize smoking drinking snowParty tattoo piercing silicone city availability pricing schedule createdAt updatedAt"
+            "_id slug name about photo gallery videos stories age nationality languages eyeColor hairColor dressSize shoeSize heightCm weightKg cupSize smoking drinking snowParty tattoo piercing silicone city availability pricing schedule createdAt updatedAt"
         )
             .lean<ModelDTO>()
             .exec();
@@ -65,6 +65,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
             "videos",
             "pricing",
             "about",
+            "stories",
         ]);
 
         const $set: Record<string, unknown> = { updatedAt: new Date() };
@@ -74,6 +75,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
             if (k === "languages" && Array.isArray(v)) $set.languages = uniq(v);
             else if (k === "gallery" && Array.isArray(v)) $set.gallery = uniq(v);
             else if (k === "videos" && Array.isArray(v)) $set.videos = uniq(v);
+            else if (k === "stories" && Array.isArray(v)) $set.stories = v;
             else if (k === "about" && typeof v === "string") $set.about = v.trim();
             else $set[k] = v;
         }
@@ -92,16 +94,12 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
             );
         }
 
-        const updated = await Model.findOneAndUpdate(
-            { slug },
-            { $set },
-            {
-                new: true,
-                lean: true,
-                projection:
-                    "_id slug name about photo gallery videos city availability pricing schedule updatedAt",
-            }
-        ).exec();
+        const updated = await Model.findOneAndUpdate({ slug }, { $set }, {
+            new: true,
+            lean: true,
+            projection:
+                "_id slug name about photo gallery videos stories age nationality languages eyeColor hairColor dressSize shoeSize heightCm weightKg cupSize smoking drinking snowParty tattoo piercing silicone city availability pricing schedule createdAt updatedAt",
+        }).exec();
 
         if (!updated) {
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
@@ -113,10 +111,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     }
 }
 
-export async function DELETE(
-    _req: NextRequest,
-    ctx: Ctx
-): Promise<NextResponse> {
+export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     try {
         await dbConnect();
         const { slug } = await ctx.params;

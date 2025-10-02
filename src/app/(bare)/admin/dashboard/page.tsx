@@ -8,7 +8,7 @@ export default async function DashboardPage() {
     const adminCookie = cookieStore.get("admin")?.value;
 
     if (adminCookie !== "true") {
-        redirect("/admin/login"); // серверний редірект ще до рендеру
+        redirect("/admin/login");
     }
 
     return(

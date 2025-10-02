@@ -1,6 +1,12 @@
-import {AvailabilityRange} from "@/models/availability.model";
-import {Schedule} from "@/models/schedule.model";
-import {Pricing} from "@/models/pricing.model";
+import { AvailabilityRange } from "@/models/availability.model";
+import { Schedule } from "@/models/schedule.model";
+import { Pricing } from "@/models/pricing.model";
+
+export type Story = {
+    _id: string;
+    url: string;
+    type: "image" | "video";
+};
 
 export type Model = {
     _id?: string;
@@ -35,6 +41,8 @@ export type Model = {
     photo?: string;
     gallery?: string[];
     videos?: string[];
+
+    stories?: Story[];
 
     pricing?: Pricing;
     createdAt?: string;

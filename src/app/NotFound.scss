@@ -4,7 +4,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: calc(100vh - 80px); // якщо Header ~80px
+    height: calc(100vh - 80px);
     text-align: center;
     gap: 16px;
     background: #f9fafb;
@@ -37,7 +37,7 @@
     transition: background-color 0.3s ease;
 
     &:hover {
-      background-color: #b91c1c; // темніший відтінок для hover
+      background-color: #b91c1c;
     }
   }
 }

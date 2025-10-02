@@ -27,7 +27,7 @@ export type ModelValues = {
     gallery?: string[];
     videos?: string[];
 
-    about?: string
+    about?: string;
 
     age?: number;
     nationality?: string;
@@ -48,6 +48,15 @@ export type ModelValues = {
 
     availability: Availability[];
     pricing?: Pricing;
+
+    stories?: Story[];
+};
+
+type Story = {
+    _id?: string;
+    url: string;
+    type: "image" | "video";
+    file?: File;
 };
 
 type Mode = "create" | "edit";
@@ -66,15 +75,11 @@ type Props = {
     onSaved?: (doc: SubmitResult) => void;
 };
 
-const LANGUAGE_OPTIONS = [
-    "English","Italian","Ukrainian","Russian","Polish","German","French","Spanish","Portuguese",
-    "Romanian","Czech","Slovak","Hungarian","Greek","Turkish","Dutch","Swedish","Norwegian",
-    "Danish","Finnish","Arabic","Hebrew","Chinese","Japanese","Korean",
-];
+const LANGUAGE_OPTIONS = ["English", "Italian", "Ukrainian", "Russian", "Polish", "German", "French", "Spanish", "Portuguese", "Romanian", "Czech", "Slovak", "Hungarian", "Greek", "Turkish", "Dutch", "Swedish", "Norwegian", "Danish", "Finnish", "Arabic", "Hebrew", "Chinese", "Japanese", "Korean"];
 
-const DRESS_SIZE_OPTIONS = ["XXS","XS","S","M","L","XL","XXL","EU 32","EU 34","EU 36","EU 38","EU 40","EU 42","EU 44","EU 46"];
-const EYE_COLOR_OPTIONS = ["Blue","Green","Brown","Hazel","Grey","Amber","Black"];
-const HAIR_COLOR_OPTIONS = ["Blonde","Brown","Black","Red","Auburn","Chestnut","Grey","White","Dyed","Highlights"];
+const DRESS_SIZE_OPTIONS = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "EU 32", "EU 34", "EU 36", "EU 38", "EU 40", "EU 42", "EU 44", "EU 46"];
+const EYE_COLOR_OPTIONS = ["Blue", "Green", "Brown", "Hazel", "Grey", "Amber", "Black"];
+const HAIR_COLOR_OPTIONS = ["Blonde", "Brown", "Black", "Red", "Auburn", "Chestnut", "Grey", "White", "Dyed", "Highlights"];
 
 const normalizeSrc = (s?: string) => {
     if (!s) return "/images/placeholder.jpg";
@@ -116,7 +121,14 @@ const TOGGLE_FIELDS: ReadonlyArray<{ key: BoolKey; label: string }> = [
 ];
 
 export default function ModelUpsertModal({
-                                             open, mode, onClose, context, initialValues, fetchUrlBuilder, onSubmit, onSaved,
+                                             open,
+                                             mode,
+                                             onClose,
+                                             context,
+                                             initialValues,
+                                             fetchUrlBuilder,
+                                             onSubmit,
+                                             onSaved,
                                          }: Props) {
     const [values, setValues] = useState<ModelValues | null>(null);
     const [loading, setLoading] = useState(false);
@@ -131,7 +143,7 @@ export default function ModelUpsertModal({
     const [coverWH, setCoverWH] = useState<{ w: number; h: number } | null>(null);
 
     const [galleryNewFiles, setGalleryNewFiles] = useState<File[]>([]);
-    const [videosNewFiles, setVideosNewFiles] = useState<File[]>([]); // << NEW
+    const [videosNewFiles, setVideosNewFiles] = useState<File[]>([]);
 
     const title = mode === "create" ? "Add new model" : `Edit: ${context?.title ?? context?.slug ?? ""}`;
     const hasCover = Boolean(coverFile || values?.photo);
@@ -164,6 +176,7 @@ export default function ModelUpsertModal({
                 tattoo: false,
                 piercing: false,
                 silicone: false,
+                stories: [],
             };
 
             setCoverFile(null);
@@ -209,13 +222,14 @@ export default function ModelUpsertModal({
                         ...full,
                         languages: (full.languages as string[] | undefined) ?? [],
                         gallery: (full.gallery as string[] | undefined) ?? [],
-                        videos:  (full.videos  as string[] | undefined) ?? [],
+                        videos: (full.videos as string[] | undefined) ?? [],
                         about: full.about ?? "",
-                        availability: full.availability?.length ? [{ ...full.availability[0] }] : baseline.availability,
+                        availability: full.availability?.length ? [{...full.availability[0]}] : baseline.availability,
                         pricing: {
                             incall: full.pricing?.incall ?? [],
                             outcall: full.pricing?.outcall ?? [],
                         },
+                        stories: (full.stories as { url: string; type: "image" | "video" }[] | undefined) ?? [],
                     };
                     originalRef.current = normalized;
                     setValues(normalized);
@@ -253,27 +267,31 @@ export default function ModelUpsertModal({
         if (!from || !to) return {};
         const diff: Record<string, unknown> = {};
         const shallow: (keyof ModelValues)[] = [
-            "name","photo","age","nationality","eyeColor","hairColor","dressSize","shoeSize",
-            "heightCm","weightKg","cupSize","smoking","drinking","snowParty","tattoo","piercing","silicone", "about",
+            "name", "photo", "age", "nationality", "eyeColor", "hairColor", "dressSize", "shoeSize",
+            "heightCm", "weightKg", "cupSize", "smoking", "drinking", "snowParty", "tattoo", "piercing", "silicone", "about",
         ];
         for (const k of shallow) if (from[k] !== to[k]) diff[k as string] = to[k];
 
         const jsonEq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
         if (!jsonEq(from.languages ?? [], to.languages ?? [])) diff.languages = to.languages ?? [];
         if (!jsonEq(from.gallery ?? [], to.gallery ?? [])) diff.gallery = to.gallery ?? [];
-        if (!jsonEq(from.videos ?? [], to.videos ?? [])) diff.videos = to.videos ?? []; // << NEW
+        if (!jsonEq(from.videos ?? [], to.videos ?? [])) diff.videos = to.videos ?? [];
         if (!jsonEq(from.availability ?? [], to.availability ?? [])) diff.availability = to.availability ?? [];
 
-        // pricing
         if (!jsonEq(from.pricing?.incall ?? [], to.pricing?.incall ?? [])) {
-            diff.pricing = { ...(diff.pricing as object | undefined), incall: to.pricing?.incall ?? [] };
+            diff.pricing = {...(diff.pricing as object | undefined), incall: to.pricing?.incall ?? []};
         }
         if (!jsonEq(from.pricing?.outcall ?? [], to.pricing?.outcall ?? [])) {
-            diff.pricing = { ...(diff.pricing as object | undefined), outcall: to.pricing?.outcall ?? [] };
+            diff.pricing = {...(diff.pricing as object | undefined), outcall: to.pricing?.outcall ?? []};
+        }
+
+        if (!jsonEq(from.stories ?? [], to.stories ?? [])) {
+            diff.stories = (to.stories ?? []).map(s => ({ url: s.url, type: s.type }));
         }
 
         return diff;
     };
+
 
     const diffPayload = useMemo(() => computeDiff(originalRef.current, values), [values]);
 
@@ -395,16 +413,44 @@ export default function ModelUpsertModal({
 
         let uploadedVideoUrls: string[] = [];
         if (videosNewFiles.length) {
-            uploadedVideoUrls = await uploadFiles(videosNewFiles, `${baseDest}/videos`); // << NEW
+            uploadedVideoUrls = await uploadFiles(videosNewFiles, `${baseDest}/videos`);
         }
+
+        // === STORIES upload ===
+        let uploadedStories: { url: string; type: "image" | "video" }[] = [];
+        if (values?.stories?.length) {
+            const localStories = values.stories.filter(s => s.url.startsWith("blob:"));
+            if (localStories.length) {
+                const imgFiles = localStories.filter(s => s.type === "image" && s.file).map(s => s.file!);
+                const vidFiles = localStories.filter(s => s.type === "video" && s.file).map(s => s.file!);
+
+                const uploadedImgs = await uploadFiles(imgFiles, `${baseDest}/stories`);
+                const uploadedVids = await uploadFiles(vidFiles, `${baseDest}/stories`);
+
+                uploadedStories = [
+                    ...uploadedImgs.map(url => ({ url, type: "image" as const })),
+                    ...uploadedVids.map(url => ({ url, type: "video" as const })),
+                ];
+            }
+        }
+
+        const finalStories = [
+            ...(values.stories?.filter(s => !s.url.startsWith("blob:")) ?? []),
+            ...uploadedStories,
+        ];
+
+        // === COMMON FINAL VALUES ===
+        const finalPhoto = uploadedCoverUrl ?? values.photo;
+        const finalGallery = [...(values.gallery ?? []), ...uploadedGalleryUrls];
+        const finalVideos = [...(values.videos ?? []), ...uploadedVideoUrls];
 
         if (mode === "create") {
             const payload = {
                 slug: values.slug,
                 name: values.name,
-                photo: uploadedCoverUrl ?? (values.photo || undefined),
-                gallery: [...(values.gallery ?? []), ...uploadedGalleryUrls],
-                videos:  [...(values.videos  ?? []), ...uploadedVideoUrls],
+                photo: finalPhoto,
+                gallery: finalGallery,
+                videos: finalVideos,
                 about: values.about?.trim() || undefined,
 
                 age: values.age,
@@ -426,7 +472,9 @@ export default function ModelUpsertModal({
 
                 availability: values.availability,
                 pricing: values.pricing,
+                stories: finalStories,
             };
+
             setSaving(true);
             setError(null);
             try {
@@ -441,20 +489,17 @@ export default function ModelUpsertModal({
             return;
         }
 
-        const finalPhoto = uploadedCoverUrl ?? values.photo;
-        const finalGallery = [...(values.gallery ?? []), ...uploadedGalleryUrls];
-        const finalVideos  = [...(values.videos  ?? []), ...uploadedVideoUrls];
+        // === EDIT mode ===
+        setValues(v => (v ? { ...v, photo: finalPhoto, gallery: finalGallery, videos: finalVideos } : v));
 
-        setValues((v) => (v ? {...v, photo: finalPhoto, gallery: finalGallery, videos: finalVideos} : v));
-
-        const payloadBase = {
+        const payload: Record<string, unknown> = {
             ...diffPayload,
-            ...(uploadedCoverUrl ? {photo: finalPhoto} : {}),
-            ...(uploadedGalleryUrls.length ? {gallery: finalGallery} : {}),
-            ...(uploadedVideoUrls.length  ? {videos:  finalVideos}  : {}), // << NEW
+            ...(uploadedCoverUrl ? { photo: finalPhoto } : {}),
+            ...(uploadedGalleryUrls.length ? { gallery: finalGallery } : {}),
+            ...(uploadedVideoUrls.length ? { videos: finalVideos } : {}),
+            ...(uploadedStories.length || diffPayload.stories ? { stories: finalStories } : {}),
         };
 
-        const payload = Object.keys(payloadBase).length ? payloadBase : {};
         if (!Object.keys(payload).length) {
             onClose();
             return;
@@ -494,7 +539,7 @@ export default function ModelUpsertModal({
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" PaperProps={{sx: {overflowX: "hidden"}}}>
-            <DialogTitle sx={{ px: 3, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <DialogTitle sx={{px: 3, display: "flex", alignItems: "center", justifyContent: "space-between"}}>
                 {title}
                 <IconButton onClick={onClose} size="small">
                     <CloseIcon/>
@@ -518,7 +563,7 @@ export default function ModelUpsertModal({
                                 </Typography>
 
                                 {hasCover ? (
-                                    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                                    <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
                                         <NextImage
                                             src={coverUrl}
                                             alt="Cover photo"
@@ -527,7 +572,12 @@ export default function ModelUpsertModal({
                                             unoptimized={coverIsExternalOrBlob}
                                             priority
                                             sizes="(max-width: 900px) 100vw, 800px"
-                                            style={{ maxWidth: "100%", height: "auto", borderRadius: 12, display: "block" }}
+                                            style={{
+                                                maxWidth: "100%",
+                                                height: "auto",
+                                                borderRadius: 12,
+                                                display: "block"
+                                            }}
                                         />
                                     </div>
                                 ) : (
@@ -544,31 +594,32 @@ export default function ModelUpsertModal({
                                         }}
                                         spacing={1.5}
                                     >
-                                        <PhotoCameraIcon sx={{ fontSize: 48, opacity: 0.6 }} />
+                                        <PhotoCameraIcon sx={{fontSize: 48, opacity: 0.6}}/>
                                         <Typography variant="body2" color="text.secondary">
                                             No cover uploaded yet
                                         </Typography>
 
-                                        <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon />}>
+                                        <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon/>}>
                                             Upload cover
-                                            <input hidden accept="image/*" type="file" onChange={onPickCover} />
+                                            <input hidden accept="image/*" type="file" onChange={onPickCover}/>
                                         </Button>
                                     </Stack>
                                 )}
 
-                                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                                <Stack direction="row" spacing={1} sx={{flexWrap: "wrap"}}>
                                     {!!values.gallery?.length && (
                                         <Tooltip title="Set from first gallery image (click a thumbnail to choose any)">
                       <span>
                         <Button variant="text" onClick={() => setCoverFromGallery(values.gallery![0])}
-                                startIcon={<CheckCircleIcon />}>
+                                startIcon={<CheckCircleIcon/>}>
                           Use first gallery as cover
                         </Button>
                       </span>
                                         </Tooltip>
                                     )}
                                     {hasCover && (
-                                        <Button variant="text" color="error" onClick={removeCover} startIcon={<DeleteOutlineIcon />}>
+                                        <Button variant="text" color="error" onClick={removeCover}
+                                                startIcon={<DeleteOutlineIcon/>}>
                                             Remove cover
                                         </Button>
                                     )}
@@ -621,7 +672,8 @@ export default function ModelUpsertModal({
                                     <TextField select label="Dress size" fullWidth value={values.dressSize ?? ""}
                                                onChange={(e) => set("dressSize", e.target.value)}>
                                         <MenuItem value="" disabled>Select…</MenuItem>
-                                        {DRESS_SIZE_OPTIONS.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                                        {DRESS_SIZE_OPTIONS.map((opt) => <MenuItem key={opt}
+                                                                                   value={opt}>{opt}</MenuItem>)}
                                     </TextField>
                                 </Grid>
 
@@ -629,7 +681,8 @@ export default function ModelUpsertModal({
                                     <TextField select label="Eye color" fullWidth value={values.eyeColor ?? ""}
                                                onChange={(e) => set("eyeColor", e.target.value)}>
                                         <MenuItem value="" disabled>Select…</MenuItem>
-                                        {EYE_COLOR_OPTIONS.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                                        {EYE_COLOR_OPTIONS.map((opt) => <MenuItem key={opt}
+                                                                                  value={opt}>{opt}</MenuItem>)}
                                     </TextField>
                                 </Grid>
 
@@ -637,25 +690,26 @@ export default function ModelUpsertModal({
                                     <TextField select label="Hair color" fullWidth value={values.hairColor ?? ""}
                                                onChange={(e) => set("hairColor", e.target.value)}>
                                         <MenuItem value="" disabled>Select…</MenuItem>
-                                        {HAIR_COLOR_OPTIONS.map((opt) => <MenuItem key={opt} value={opt}>{opt}</MenuItem>)}
+                                        {HAIR_COLOR_OPTIONS.map((opt) => <MenuItem key={opt}
+                                                                                   value={opt}>{opt}</MenuItem>)}
                                     </TextField>
                                 </Grid>
 
                                 <Grid item xs={12} sm={3}>
                                     <TextField label="Height (cm)" type="number" fullWidth value={values.heightCm ?? ""}
-                                               onChange={(e) => set("heightCm", Number(e.target.value) || undefined)} />
+                                               onChange={(e) => set("heightCm", Number(e.target.value) || undefined)}/>
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
                                     <TextField label="Weight (kg)" type="number" fullWidth value={values.weightKg ?? ""}
-                                               onChange={(e) => set("weightKg", Number(e.target.value) || undefined)} />
+                                               onChange={(e) => set("weightKg", Number(e.target.value) || undefined)}/>
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
                                     <TextField label="Shoe size" type="number" fullWidth value={values.shoeSize ?? ""}
-                                               onChange={(e) => set("shoeSize", Number(e.target.value) || undefined)} />
+                                               onChange={(e) => set("shoeSize", Number(e.target.value) || undefined)}/>
                                 </Grid>
                                 <Grid item xs={12} sm={3}>
                                     <TextField label="Cup size" fullWidth value={values.cupSize ?? ""}
-                                               onChange={(e) => set("cupSize", e.target.value)} />
+                                               onChange={(e) => set("cupSize", e.target.value)}/>
                                 </Grid>
 
                                 {/* Languages */}
@@ -672,10 +726,12 @@ export default function ModelUpsertModal({
                                         }}
                                         renderTags={(value: readonly string[], getTagProps) =>
                                             value.map((option: string, index: number) => (
-                                                <Chip variant="outlined" label={option} {...getTagProps({index})} key={option}/>
+                                                <Chip variant="outlined" label={option} {...getTagProps({index})}
+                                                      key={option}/>
                                             ))
                                         }
-                                        renderInput={(params) => <TextField {...params} label="Languages" placeholder="Select or type…"/>}
+                                        renderInput={(params) => <TextField {...params} label="Languages"
+                                                                            placeholder="Select or type…"/>}
                                     />
                                 </Grid>
 
@@ -685,7 +741,8 @@ export default function ModelUpsertModal({
                                         {TOGGLE_FIELDS.map(({key, label}) => (
                                             <FormControlLabel
                                                 key={key}
-                                                control={<Switch checked={Boolean(values[key])} onChange={(e) => set(key, e.target.checked)} />}
+                                                control={<Switch checked={Boolean(values[key])}
+                                                                 onChange={(e) => set(key, e.target.checked)}/>}
                                                 label={label}
                                             />
                                         ))}
@@ -714,17 +771,19 @@ export default function ModelUpsertModal({
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={4}>
                                     <TextField label="City" fullWidth value={values.availability[0].city}
-                                               onChange={(e) => setAvailability({city: e.target.value})} />
+                                               onChange={(e) => setAvailability({city: e.target.value})}/>
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                    <TextField label="Start date" type="date" fullWidth value={values.availability[0].startDate}
+                                    <TextField label="Start date" type="date" fullWidth
+                                               value={values.availability[0].startDate}
                                                onChange={(e) => setAvailability({startDate: e.target.value})}
-                                               InputLabelProps={{shrink: true}} />
+                                               InputLabelProps={{shrink: true}}/>
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                    <TextField label="End date" type="date" fullWidth value={values.availability[0].endDate}
+                                    <TextField label="End date" type="date" fullWidth
+                                               value={values.availability[0].endDate}
                                                onChange={(e) => setAvailability({endDate: e.target.value})}
-                                               InputLabelProps={{shrink: true}} />
+                                               InputLabelProps={{shrink: true}}/>
                                 </Grid>
                             </Grid>
 
@@ -737,7 +796,8 @@ export default function ModelUpsertModal({
                                 <Grid item xs={12} md={6}>
                                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
                                         <Typography variant="body1" fontWeight={600}>Incall</Typography>
-                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("incall")}>+ Add</Button>
+                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("incall")}>+
+                                            Add</Button>
                                     </Stack>
                                     <Stack spacing={1}>
                                         {(values.pricing?.incall ?? []).map((row, i) => (
@@ -748,15 +808,17 @@ export default function ModelUpsertModal({
                                                 </Grid>
                                                 <Grid item xs={5}>
                                                     <TextField label="Price" fullWidth value={row.price}
-                                                               onChange={(e) => setPriceRow("incall", i, {price: e.target.value})} />
+                                                               onChange={(e) => setPriceRow("incall", i, {price: e.target.value})}/>
                                                 </Grid>
                                                 <Grid item xs={2} sx={{display: "flex", alignItems: "center"}}>
-                                                    <Button color="error" onClick={() => removePriceRow("incall", i)}>Remove</Button>
+                                                    <Button color="error"
+                                                            onClick={() => removePriceRow("incall", i)}>Remove</Button>
                                                 </Grid>
                                             </Grid>
                                         ))}
                                         {!(values.pricing?.incall?.length) && (
-                                            <Typography variant="body2" color="text.secondary">No incall items</Typography>
+                                            <Typography variant="body2" color="text.secondary">No incall
+                                                items</Typography>
                                         )}
                                     </Stack>
                                 </Grid>
@@ -765,7 +827,8 @@ export default function ModelUpsertModal({
                                 <Grid item xs={12} md={6}>
                                     <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
                                         <Typography variant="body1" fontWeight={600}>Outcall</Typography>
-                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("outcall")}>+ Add</Button>
+                                        <Button size="small" variant="outlined" onClick={() => addPriceRow("outcall")}>+
+                                            Add</Button>
                                     </Stack>
                                     <Stack spacing={1}>
                                         {(values.pricing?.outcall ?? []).map((row, i) => (
@@ -779,12 +842,14 @@ export default function ModelUpsertModal({
                                                                onChange={(e) => setPriceRow("outcall", i, {price: e.target.value})}/>
                                                 </Grid>
                                                 <Grid item xs={2} sx={{display: "flex", alignItems: "center"}}>
-                                                    <Button color="error" onClick={() => removePriceRow("outcall", i)}>Remove</Button>
+                                                    <Button color="error"
+                                                            onClick={() => removePriceRow("outcall", i)}>Remove</Button>
                                                 </Grid>
                                             </Grid>
                                         ))}
                                         {!(values.pricing?.outcall?.length) && (
-                                            <Typography variant="body2" color="text.secondary">No outcall items</Typography>
+                                            <Typography variant="body2" color="text.secondary">No outcall
+                                                items</Typography>
                                         )}
                                     </Stack>
                                 </Grid>
@@ -799,7 +864,8 @@ export default function ModelUpsertModal({
                                     <Stack direction="row" spacing={1}>
                                         <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon/>}>
                                             Add images
-                                            <input hidden accept="image/*" type="file" multiple onChange={onPickGallery}/>
+                                            <input hidden accept="image/*" type="file" multiple
+                                                   onChange={onPickGallery}/>
                                         </Button>
                                     </Stack>
                                 </Stack>
@@ -813,16 +879,26 @@ export default function ModelUpsertModal({
                                                 const unopt = url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:");
                                                 return (
                                                     <ImageListItem key={url} sx={{position: "relative"}}>
-                                                        <div style={{ position: "relative", width: "100%", paddingTop: "100%", borderRadius: 8, overflow: "hidden" }}>
-                                                            <NextImage src={url} alt="gallery" fill unoptimized={unopt} style={{objectFit: "cover"}}/>
-                                                            <Stack direction="row" spacing={1} sx={{position: "absolute", top: 6, right: 6}}>
+                                                        <div style={{
+                                                            position: "relative",
+                                                            width: "100%",
+                                                            paddingTop: "100%",
+                                                            borderRadius: 8,
+                                                            overflow: "hidden"
+                                                        }}>
+                                                            <NextImage src={url} alt="gallery" fill unoptimized={unopt}
+                                                                       style={{objectFit: "cover"}}/>
+                                                            <Stack direction="row" spacing={1}
+                                                                   sx={{position: "absolute", top: 6, right: 6}}>
                                                                 <Tooltip title="Set as cover">
-                                                                    <IconButton size="small" color="primary" onClick={() => setCoverFromGallery(url)}>
+                                                                    <IconButton size="small" color="primary"
+                                                                                onClick={() => setCoverFromGallery(url)}>
                                                                         <CheckCircleIcon fontSize="small"/>
                                                                     </IconButton>
                                                                 </Tooltip>
                                                                 <Tooltip title="Remove">
-                                                                    <IconButton size="small" color="error" onClick={() => removeGalleryExisting(rawUrl)}>
+                                                                    <IconButton size="small" color="error"
+                                                                                onClick={() => removeGalleryExisting(rawUrl)}>
                                                                         <DeleteOutlineIcon fontSize="small"/>
                                                                     </IconButton>
                                                                 </Tooltip>
@@ -837,17 +913,27 @@ export default function ModelUpsertModal({
 
                                 {galleryNewFiles.length > 0 && (
                                     <>
-                                        <Typography variant="caption" color="text.secondary">New (to upload)</Typography>
+                                        <Typography variant="caption" color="text.secondary">New (to
+                                            upload)</Typography>
                                         <ImageList cols={4} gap={8} sx={{m: 0, overflow: "hidden"}}>
                                             {galleryNewFiles.map((f, idx) => {
                                                 const u = URL.createObjectURL(f);
                                                 return (
                                                     <ImageListItem key={idx} sx={{position: "relative"}}>
-                                                        <div style={{ position: "relative", width: "100%", paddingTop: "100%", borderRadius: 8, overflow: "hidden" }}>
-                                                            <NextImage src={u} alt={`new-${idx}`} fill unoptimized style={{objectFit: "cover"}}/>
-                                                            <Stack direction="row" spacing={1} sx={{position: "absolute", top: 6, right: 6}}>
+                                                        <div style={{
+                                                            position: "relative",
+                                                            width: "100%",
+                                                            paddingTop: "100%",
+                                                            borderRadius: 8,
+                                                            overflow: "hidden"
+                                                        }}>
+                                                            <NextImage src={u} alt={`new-${idx}`} fill unoptimized
+                                                                       style={{objectFit: "cover"}}/>
+                                                            <Stack direction="row" spacing={1}
+                                                                   sx={{position: "absolute", top: 6, right: 6}}>
                                                                 <Tooltip title="Remove">
-                                                                    <IconButton size="small" color="error" onClick={() => removeGalleryNew(idx)}>
+                                                                    <IconButton size="small" color="error"
+                                                                                onClick={() => removeGalleryNew(idx)}>
                                                                         <DeleteOutlineIcon fontSize="small"/>
                                                                     </IconButton>
                                                                 </Tooltip>
@@ -868,9 +954,11 @@ export default function ModelUpsertModal({
                                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                                     <Typography variant="subtitle1" fontWeight={700}>Videos</Typography>
                                     <Stack direction="row" spacing={1}>
-                                        <Button component="label" variant="outlined" startIcon={<MovieCreationOutlinedIcon/>}>
+                                        <Button component="label" variant="outlined"
+                                                startIcon={<MovieCreationOutlinedIcon/>}>
                                             Add videos
-                                            <input hidden accept="video/*" type="file" multiple onChange={onPickVideos}/>
+                                            <input hidden accept="video/*" type="file" multiple
+                                                   onChange={onPickVideos}/>
                                         </Button>
                                     </Stack>
                                 </Stack>
@@ -882,8 +970,10 @@ export default function ModelUpsertModal({
                                             {(values.videos ?? []).map((url) => (
                                                 <Grid item xs={12} sm={6} md={4} key={url}>
                                                     <Stack spacing={0.5}>
-                                                        <video src={url} controls style={{ width: "100%", borderRadius: 8 }} />
-                                                        <Button size="small" color="error" onClick={() => removeVideoExisting(url)}>
+                                                        <video src={url} controls
+                                                               style={{width: "100%", borderRadius: 8}}/>
+                                                        <Button size="small" color="error"
+                                                                onClick={() => removeVideoExisting(url)}>
                                                             Remove
                                                         </Button>
                                                     </Stack>
@@ -895,15 +985,18 @@ export default function ModelUpsertModal({
 
                                 {videosNewFiles.length > 0 && (
                                     <>
-                                        <Typography variant="caption" color="text.secondary">New (to upload)</Typography>
+                                        <Typography variant="caption" color="text.secondary">New (to
+                                            upload)</Typography>
                                         <Grid container spacing={2}>
                                             {videosNewFiles.map((f, idx) => {
                                                 const u = URL.createObjectURL(f);
                                                 return (
                                                     <Grid item xs={12} sm={6} md={4} key={idx}>
                                                         <Stack spacing={0.5}>
-                                                            <video src={u} controls style={{ width: "100%", borderRadius: 8 }} />
-                                                            <Button size="small" color="error" onClick={() => removeVideoNew(idx)}>
+                                                            <video src={u} controls
+                                                                   style={{width: "100%", borderRadius: 8}}/>
+                                                            <Button size="small" color="error"
+                                                                    onClick={() => removeVideoNew(idx)}>
                                                                 Remove
                                                             </Button>
                                                         </Stack>
@@ -912,6 +1005,103 @@ export default function ModelUpsertModal({
                                             })}
                                         </Grid>
                                     </>
+                                )}
+                            </Stack>
+
+                            <Divider/>
+
+                            {/* STORIES */}
+                            <Stack spacing={1}>
+                                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                    <Typography variant="subtitle1" fontWeight={700}>Stories</Typography>
+                                    <Stack direction="row" spacing={1}>
+                                        <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon/>}>
+                                            Add images
+                                            <input
+                                                hidden
+                                                accept="image/*"
+                                                type="file"
+                                                multiple
+                                                onChange={(e) => {
+                                                    const files = Array.from(e.target.files || []);
+                                                    if (!files.length) return;
+                                                    setValues(v =>
+                                                        v ? {
+                                                            ...v,
+                                                            stories: [
+                                                                ...(v.stories ?? []),
+                                                                ...files.map(f => ({
+                                                                    url: URL.createObjectURL(f),
+                                                                    type: "image" as const,
+                                                                    file: f,
+                                                                }))
+                                                            ]
+                                                        } : v
+                                                    );
+                                                }}
+                                            />
+                                        </Button>
+                                        <Button component="label" variant="outlined"
+                                                startIcon={<MovieCreationOutlinedIcon/>}>
+                                            Add videos
+                                            <input
+                                                hidden
+                                                accept="video/*"
+                                                type="file"
+                                                multiple
+                                                onChange={(e) => {
+                                                    const files = Array.from(e.target.files || []);
+                                                    if (!files.length) return;
+                                                    setValues(v =>
+                                                        v ? {
+                                                            ...v,
+                                                            stories: [
+                                                                ...(v.stories ?? []),
+                                                                ...files.map(f => ({
+                                                                    url: URL.createObjectURL(f),
+                                                                    type: "video" as const,
+                                                                    file: f,
+                                                                }))
+                                                            ]
+                                                        } : v
+                                                    );
+                                                }}
+                                            />
+                                        </Button>
+                                    </Stack>
+                                </Stack>
+
+                                {(values?.stories ?? []).length > 0 && (
+                                    <Grid container spacing={2}>
+                                        {values!.stories!.map((s, idx) => (
+                                            <Grid item xs={12} sm={6} md={4} key={s._id || idx}>
+                                                {s.type === "image" ? (
+                                                    <NextImage
+                                                        src={normalizeSrc(s.url)}
+                                                        alt={`story-${idx}`}
+                                                        width={200}
+                                                        height={300}
+                                                        style={{borderRadius: 8, objectFit: "cover"}}
+                                                    />
+                                                ) : (
+                                                    <video src={normalizeSrc(s.url)} controls
+                                                           style={{width: "100%", borderRadius: 8}}/>
+                                                )}
+                                                <Button
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() =>
+                                                        setValues(v => v ? {
+                                                            ...v,
+                                                            stories: v.stories?.filter((_, i) => i !== idx)
+                                                        } : v)
+                                                    }
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
                                 )}
                             </Stack>
 
@@ -932,8 +1122,8 @@ export default function ModelUpsertModal({
                     {mode === "create" ? "Create" : "Save changes"}
                 </Button>
             </DialogActions>
-            <Backdrop open={saving} sx={{ color: '#fff', zIndex: (t) => t.zIndex.modal + 1 }}>
-                <CircularProgress color="inherit" />
+            <Backdrop open={saving} sx={{color: '#fff', zIndex: (t) => t.zIndex.modal + 1}}>
+                <CircularProgress color="inherit"/>
             </Backdrop>
         </Dialog>
     );

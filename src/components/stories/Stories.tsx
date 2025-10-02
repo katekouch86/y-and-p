@@ -10,10 +10,9 @@ type ApiModelListItem = {
     slug: string;
     name: string;
     photo?: string;
-    gallery?: string[];
-    videos?: string[];
     city?: string;
     availability?: { city: string; startDate: string; endDate: string }[];
+    stories?: { _id: string; url: string; type: "image" | "video" }[];
 };
 
 export default function Stories({ city }: { city?: string }) {
@@ -24,7 +23,9 @@ export default function Stories({ city }: { city?: string }) {
         const run = async () => {
             const qs = new URLSearchParams({ available: "now", limit: "24" });
             if (city) qs.set("city", city);
-            const res = await fetch(`/api/models/get-list?${qs.toString()}`, { cache: "no-store" });
+            const res = await fetch(`/api/models/get-list?${qs.toString()}`, {
+                cache: "no-store",
+            });
             if (!res.ok) return setItems([]);
             const data = await res.json();
             setItems(Array.isArray(data) ? data : []);
@@ -35,7 +36,11 @@ export default function Stories({ city }: { city?: string }) {
     if (!items.length) return null;
 
     const normalize = (s?: string) =>
-        !s ? "/images/placeholder.jpg" : s.startsWith("http") || s.startsWith("/") ? s : `/${s}`;
+        !s
+            ? "/images/placeholder.jpg"
+            : s.startsWith("http") || s.startsWith("/")
+                ? s
+                : `/${s}`;
 
     return (
         <>
@@ -50,6 +55,7 @@ export default function Stories({ city }: { city?: string }) {
                             role="listitem"
                             aria-label={`${m.name} story`}
                             onClick={() => setOpenIndex(idx)}
+                            disabled={!(m.stories && m.stories.length)}
                         >
               <span className="stories__ring">
                 <span className="stories__thumb">
@@ -76,9 +82,8 @@ export default function Stories({ city }: { city?: string }) {
                         slug: m.slug,
                         name: m.name,
                         photo: normalize(m.photo),
-                        videos: (m.videos ?? []).map(normalize),
-                        gallery: (m.gallery?.length ? m.gallery : [m.photo]).map(normalize),
-                        city: (m.city ?? m.availability?.[0]?.city ?? city ?? ""),
+                        stories: m.stories ?? [],
+                        city: m.city ?? m.availability?.[0]?.city ?? city ?? "",
                     }))}
                     startModelIndex={openIndex}
                     onClose={() => setOpenIndex(null)}
