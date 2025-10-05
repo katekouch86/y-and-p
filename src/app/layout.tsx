@@ -6,6 +6,9 @@ import ScrollToTop from "@/utils/ScrollToTop";
 export const metadata: Metadata = {
     title: "Y&P Agency — Luxury Companionship in Italy",
     description: "Exclusive encounters with elegant Slavic ladies in Milan and Rome. Luxury, confidentiality, and pleasure without compromise.",
+    icons: {
+        icon: [{ url: "/favicon.png", type: "image/png", sizes: "64x64" }],
+    },
     robots: "index, follow",
     openGraph: {
         title: "Y&P Agency — Luxury Companionship in Italy",
