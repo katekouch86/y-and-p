@@ -576,7 +576,7 @@ export default function ModelUpsertModal({
                                                 maxWidth: "100%",
                                                 height: "auto",
                                                 borderRadius: 12,
-                                                display: "block"
+                                                display: "block",
                                             }}
                                         />
                                     </div>

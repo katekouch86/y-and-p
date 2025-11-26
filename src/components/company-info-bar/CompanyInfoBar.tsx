@@ -12,7 +12,7 @@ export default function CompanyInfoBar() {
                 <header className="company-info__head" aria-label="Company info header">
 
                     <h1 id="company-info__title" className="company-info__title">
-                        Companionship in Italy
+                        Escort in Italy
                     </h1>
                     <h2 className="company-info__lead">
                         The reference point for classy experiences and unforgettable moments in Italy.
@@ -20,7 +20,7 @@ export default function CompanyInfoBar() {
                 </header>
                 <div className="company-info__body">
                     <p className="company-info__text">
-                        We offer exclusive encounters with elegant and refined ladies for private dinners, travel,
+                        We offer exclusive escort encounters with elegant and refined ladies for private dinners, travel,
                         business events, or a true girlfriend experience.
                     </p>
                     <p className="company-info__text">
