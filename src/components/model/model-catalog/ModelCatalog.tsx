@@ -24,11 +24,12 @@ export default function ModelCatalog({ city }: { city: string }) {
                 const response = await fetch(
                     "/api/models/get-list?" + params.toString()
                 );
+
                 const data: ModelCatalogItemProps[] = await response.json();
                 setModels(data);
-            } catch {
+            } catch (err) {
+                console.log("Failed to fetch models", err);
                 setModels([]);
-                console.log("Failed to fetch models");
             } finally {
                 setLoading(false);
             }
@@ -77,8 +78,7 @@ export default function ModelCatalog({ city }: { city: string }) {
     return (
         <div className="model-catalog">
 
-            {/* ---------- AVAILABLE NOW ---------- */}
-            <h1 className="model-catalog__title">Available Models</h1>
+            <h1 className="model-catalog__title">Available Now</h1>
 
             <section className="model-catalog__grid">
                 {availableNow.length === 0 && (
@@ -100,7 +100,6 @@ export default function ModelCatalog({ city }: { city: string }) {
                 ))}
             </section>
 
-            {/* ---------- ARRIVING SOON ---------- */}
             {arrivingSoon.length > 0 && (
                 <>
                     <h1 className="model-catalog__title" style={{ marginTop: "50px" }}>

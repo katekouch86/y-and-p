@@ -22,10 +22,21 @@ export default async function ModelPage({params}: { params: Promise<{ city: stri
         videos?: string[];
     } = await res.json();
 
-    const currentCity = model.availability?.[0]?.city || model.city;
-    if (currentCity && currentCity.toLowerCase() !== city.toLowerCase()) {
+    // Перевіряємо, чи модель доступна у цьому місті ХОЧ В ОДНОМУ слоті
+    const availableCities = model.availability?.map(a =>
+        a.city?.toLowerCase()
+    ) ?? [];
+
+    const cityLower = city.toLowerCase();
+
+    const isInCity = availableCities.includes(cityLower);
+
+    if (!isInCity) {
         return notFound();
     }
+
+    const currentCity = cityLower;
+
 
     const gallery = [model.photo, ...(model.gallery ?? [])].filter(
         Boolean

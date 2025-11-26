@@ -224,7 +224,7 @@ export default function ModelUpsertModal({
                         gallery: (full.gallery as string[] | undefined) ?? [],
                         videos: (full.videos as string[] | undefined) ?? [],
                         about: full.about ?? "",
-                        availability: full.availability?.length ? [{...full.availability[0]}] : baseline.availability,
+                        availability: full.availability?.length ? [...full.availability] : baseline.availability,
                         pricing: {
                             incall: full.pricing?.incall ?? [],
                             outcall: full.pricing?.outcall ?? [],
@@ -248,7 +248,10 @@ export default function ModelUpsertModal({
                 gallery: initialValues?.gallery ?? [],
                 videos: initialValues?.videos ?? [],
                 about: initialValues?.about ?? "",
-                availability: initialValues?.availability?.length ? [{...initialValues.availability[0]}] : baseline.availability,
+                availability:
+                    initialValues?.availability?.length
+                        ? [...initialValues.availability]
+                        : baseline.availability,
                 pricing: {
                     incall: initialValues?.pricing?.incall ?? [],
                     outcall: initialValues?.pricing?.outcall ?? [],
@@ -764,28 +767,108 @@ export default function ModelUpsertModal({
                                 placeholder="Write a short bio, specialties, vibe, notes, etc."
                             />
 
-                            {/* Availability */}
+                            {/* MULTI-CITY AVAILABILITY */}
                             <Typography variant="subtitle1" fontWeight={700}>
-                                Availability {mode === "create" ? "(required)" : ""}
+                                Availability (multi-city)
                             </Typography>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} sm={4}>
-                                    <TextField label="City" fullWidth value={values.availability[0].city}
-                                               onChange={(e) => setAvailability({city: e.target.value})}/>
-                                </Grid>
-                                <Grid item xs={12} sm={4}>
-                                    <TextField label="Start date" type="date" fullWidth
-                                               value={values.availability[0].startDate}
-                                               onChange={(e) => setAvailability({startDate: e.target.value})}
-                                               InputLabelProps={{shrink: true}}/>
-                                </Grid>
-                                <Grid item xs={12} sm={4}>
-                                    <TextField label="End date" type="date" fullWidth
-                                               value={values.availability[0].endDate}
-                                               onChange={(e) => setAvailability({endDate: e.target.value})}
-                                               InputLabelProps={{shrink: true}}/>
-                                </Grid>
-                            </Grid>
+
+                            <Stack spacing={2}>
+
+                                {values.availability.map((item, index) => (
+                                    <Grid
+                                        container
+                                        spacing={2}
+                                        key={index}
+                                        sx={{
+                                            border: "1px solid #ddd",
+                                            borderRadius: 2,
+                                            p: 2,
+                                            background: "#fafafa"
+                                        }}
+                                    >
+                                        {/* CITY */}
+                                        <Grid item xs={12} sm={3}>
+                                            <TextField
+                                                label="City"
+                                                fullWidth
+                                                value={item.city}
+                                                onChange={(e) => {
+                                                    const next = [...values.availability];
+                                                    next[index].city = e.target.value;
+                                                    set("availability", next);
+                                                }}
+                                            />
+                                        </Grid>
+
+                                        {/* START DATE */}
+                                        <Grid item xs={12} sm={3}>
+                                            <TextField
+                                                type="date"
+                                                label="Start date"
+                                                fullWidth
+                                                InputLabelProps={{ shrink: true }}
+                                                value={item.startDate}
+                                                onChange={(e) => {
+                                                    const next = [...values.availability];
+                                                    next[index].startDate = e.target.value;
+                                                    set("availability", next);
+                                                }}
+                                            />
+                                        </Grid>
+
+                                        {/* END DATE */}
+                                        <Grid item xs={12} sm={3}>
+                                            <TextField
+                                                type="date"
+                                                label="End date"
+                                                fullWidth
+                                                InputLabelProps={{ shrink: true }}
+                                                value={item.endDate}
+                                                onChange={(e) => {
+                                                    const next = [...values.availability];
+                                                    next[index].endDate = e.target.value;
+                                                    set("availability", next);
+                                                }}
+                                            />
+                                        </Grid>
+
+                                        {/* REMOVE */}
+                                        <Grid item xs={12} sm={3} sx={{ display: "flex", alignItems: "center" }}>
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={() => {
+                                                    let next = [...values.availability];
+                                                    next.splice(index, 1);
+
+                                                    if (next.length === 0) {
+                                                        next = [{ city: "", startDate: "", endDate: "" }];
+                                                    }
+
+                                                    set("availability", next);
+                                                }}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+                                ))}
+
+                                {/* ADD */}
+                                <Button
+                                    variant="outlined"
+                                    onClick={() =>
+                                        set("availability", [
+                                            ...values.availability,
+                                            { city: "", startDate: "", endDate: "" }
+                                        ])
+                                    }
+                                >
+                                    + Add another city
+                                </Button>
+
+                            </Stack>
+
 
                             <Divider/>
 
