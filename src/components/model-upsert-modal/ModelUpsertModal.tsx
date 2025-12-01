@@ -279,7 +279,7 @@ export default function ModelUpsertModal({
         if (!jsonEq(from.languages ?? [], to.languages ?? [])) diff.languages = to.languages ?? [];
         if (!jsonEq(from.gallery ?? [], to.gallery ?? [])) diff.gallery = to.gallery ?? [];
         if (!jsonEq(from.videos ?? [], to.videos ?? [])) diff.videos = to.videos ?? [];
-        if (!jsonEq(from.availability ?? [], to.availability ?? [])) diff.availability = to.availability ?? [];
+        diff.availability = to.availability;
 
         if (!jsonEq(from.pricing?.incall ?? [], to.pricing?.incall ?? [])) {
             diff.pricing = {...(diff.pricing as object | undefined), incall: to.pricing?.incall ?? []};

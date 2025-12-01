@@ -40,33 +40,17 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
         const body = (await req.json()) as Record<string, unknown>;
 
         const ALLOWED = new Set<string>([
-            "name",
-            "age",
-            "nationality",
-            "languages",
-            "smoking",
-            "drinking",
-            "snowParty",
-            "eyeColor",
-            "hairColor",
-            "dressSize",
-            "shoeSize",
-            "heightCm",
-            "weightKg",
-            "cupSize",
-            "tattoo",
-            "piercing",
-            "silicone",
-            "city",
+            "name", "age", "nationality", "languages",
+            "smoking", "drinking", "snowParty",
+            "eyeColor", "hairColor", "dressSize", "shoeSize",
+            "heightCm", "weightKg", "cupSize",
+            "tattoo", "piercing", "silicone",
             "availability",
             "schedule",
-            "photo",
-            "gallery",
-            "videos",
-            "pricing",
-            "about",
-            "stories",
+            "photo", "gallery", "videos",
+            "pricing", "about", "stories"
         ]);
+
 
         const $set: Record<string, unknown> = { updatedAt: new Date() };
 
@@ -78,13 +62,6 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
             else if (k === "stories" && Array.isArray(v)) $set.stories = v;
             else if (k === "about" && typeof v === "string") $set.about = v.trim();
             else $set[k] = v;
-        }
-
-        if (Array.isArray(body.availability) && body.availability.length > 0) {
-            const rootCity = (body.availability[0] as AvailabilityItem)?.city;
-            if (rootCity) {
-                $set.city = rootCity;
-            }
         }
 
         if (Object.keys($set).length === 1) {

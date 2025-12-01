@@ -4,11 +4,18 @@ export type AvailabilityItem =
 
 export function canonCity(raw?: string): string {
     if (!raw) return "";
+
     const v = raw.trim().toLowerCase();
-    if (["milan", "milano"].includes(v)) return "milan";
-    if (["rome", "roma", "рома"].includes(v)) return "rome";
+
+    // MILAN
+    if (["milan", "milano", "mailand", "мілан"].includes(v)) return "milan";
+
+    // ROME
+    if (["rome", "roma", "рим", "рома"].includes(v)) return "rome";
+
     return v;
 }
+
 
 export function isAvailableNow(
     availability?: AvailabilityItem[] | null,

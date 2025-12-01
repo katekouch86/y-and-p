@@ -20,20 +20,11 @@ export async function POST(req: Request) {
             );
         }
 
-        const rootCity = data.availability?.[0]?.city?.trim();
-        if (!rootCity) {
-            return NextResponse.json(
-                { message: "City is required (takes from availability[0].city)" },
-                { status: 400 }
-            );
-        }
-
         const uniq = <T,>(arr?: T[]) =>
             Array.from(new Set((arr ?? []).filter(Boolean) as T[]));
 
         const doc = await Model.create({
             ...data,
-            city: rootCity,
             about: data.about?.trim(),
             languages: uniq(data.languages),
             gallery: uniq(data.gallery),
@@ -45,6 +36,7 @@ export async function POST(req: Request) {
                 }))
             ),
         });
+
 
         return NextResponse.json(doc, { status: 201 });
     } catch (e: unknown) {

@@ -7,8 +7,6 @@ import { useEffect, useState } from "react";
 import Loading from "@/components/loading/Loading";
 import { ModelCatalogItemProps } from "@/types/model-catalog-item";
 
-const ARRIVING_SOON_DAYS = 7;
-
 export default function ModelCatalog({ city }: { city: string }) {
     const [models, setModels] = useState<ModelCatalogItemProps[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -40,35 +38,41 @@ export default function ModelCatalog({ city }: { city: string }) {
 
     if (loading) return <Loading />;
 
+    // Universal date parser (supports DD.MM.YYYY + ISO)
+    const parseDate = (str: string) => {
+        if (str.includes(".")) {
+            const [d, m, y] = str.split(".");
+            return new Date(+y, +m - 1, +d);
+        }
+        return new Date(str);
+    };
+
+    // 🔥 NEW VERSION — no “7 days” limit
     const isArrivingSoon = (
         availability: ModelCatalogItemProps["availability"],
         cityName: string
     ): boolean => {
-        if (!availability || !availability.length) return false;
-
-        const today = new Date();
-        const todayStr = today.toISOString().slice(0, 10);
-
-        const future = new Date(today);
-        future.setDate(future.getDate() + ARRIVING_SOON_DAYS);
-        const soonLimitStr = future.toISOString().slice(0, 10);
+        if (!availability?.length) return false;
 
         const targetCity = canonCity(cityName);
+        const today = new Date();
 
         return availability.some((slot) => {
             if (!slot?.city || !slot.startDate) return false;
             if (canonCity(slot.city) !== targetCity) return false;
 
-            const start = slot.startDate;
+            const start = parseDate(slot.startDate);
 
-            return start > todayStr && start <= soonLimitStr;
+            return start > today; // 🔥 future date = arriving soon
         });
     };
 
+    // AVAILABLE NOW (today is between start & end)
     const availableNow = models.filter((m) =>
         isAvailableNow(m.availability, city)
     );
 
+    // ARRIVING SOON (any future date)
     const arrivingSoon = models.filter(
         (m) =>
             !isAvailableNow(m.availability, city) &&
