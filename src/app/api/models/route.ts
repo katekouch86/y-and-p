@@ -27,13 +27,21 @@ export async function POST(req: Request) {
         const gallery = Array.from(new Set(data.gallery ?? []));
         const videos = Array.from(new Set(data.videos ?? []));
 
+        const rawStories = Array.isArray(data.stories) ? data.stories : [];
+
         const stories = Array.from(
             new Set(
-                (data.stories ?? []).map((s: { url: string; type: "image" | "video" }) =>
+                rawStories.map((s: { url: string; type: "image" | "video" }) =>
                     JSON.stringify({ url: s.url, type: s.type })
                 )
             )
-        ).map((x) => JSON.parse(x as string));
+        ).map((x) => {
+            if (typeof x !== "string") {
+                return { url: "", type: "image" }; // fallback щоб API не впав
+            }
+            return JSON.parse(x);
+        });
+
 
         const model = await Model.create({
             ...data,
