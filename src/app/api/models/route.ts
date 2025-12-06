@@ -13,47 +13,48 @@ export async function POST(req: Request) {
 
         const data = await req.json();
 
-        if (!data.slug || !data.name) {
+        const mainCity = data.availability?.[0]?.city?.trim();
+        if (!mainCity) {
             return NextResponse.json(
-                { message: "slug and name are required" },
+                { message: "City is required (availability[0].city missing)" },
                 { status: 400 }
             );
         }
 
-        const uniq = <T,>(arr?: T[]) =>
-            Array.from(new Set((arr ?? []).filter(Boolean) as T[]));
+        const about = data.about?.trim() || undefined;
 
-        const doc = await Model.create({
+        const languages = Array.from(new Set(data.languages ?? []));
+        const gallery = Array.from(new Set(data.gallery ?? []));
+        const videos = Array.from(new Set(data.videos ?? []));
+
+        const stories = Array.from(
+            new Set(
+                (data.stories ?? []).map((s: { url: string; type: "image" | "video" }) =>
+                    JSON.stringify({ url: s.url, type: s.type })
+                )
+            )
+        ).map((x) => JSON.parse(x as string));
+
+        const model = await Model.create({
             ...data,
-            about: data.about?.trim(),
-            languages: uniq(data.languages),
-            gallery: uniq(data.gallery),
-            videos: uniq(data.videos),
-            stories: uniq(
-                (data.stories ?? []).map((s: StoryItem) => ({
-                    url: s.url,
-                    type: s.type,
-                }))
-            ),
+            city: mainCity,
+            about,
+            languages,
+            gallery,
+            videos,
+            stories,
         });
 
+        return NextResponse.json(model, { status: 201 });
 
-        return NextResponse.json(doc, { status: 201 });
-    } catch (e: unknown) {
-        if (
-            e instanceof MongoServerError &&
-            e.code === 11000 &&
-            e.keyPattern &&
-            "slug" in e.keyPattern
-        ) {
-            return NextResponse.json(
-                { message: "Slug already exists" },
-                { status: 409 }
-            );
-        }
+    } catch (error: unknown) {
+        console.error("❌ ERROR CREATING MODEL:", error);
 
         const message =
-            e instanceof Error ? e.message : "Failed to create model";
+            error instanceof Error ? error.message : "Server error";
+
         return NextResponse.json({ message }, { status: 500 });
     }
 }
+
+

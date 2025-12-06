@@ -195,18 +195,22 @@ export default function ModelUpsertModal({
                     videos: initialValues?.videos ?? [],
                     about: initialValues?.about ?? "",
                     availability:
-                        initialValues?.availability?.length ? [{...initialValues.availability[0]}] : baseline.availability,
+                        initialValues?.availability?.length
+                            ? [{ ...initialValues.availability[0] }]
+                            : baseline.availability,
                     pricing: {
                         incall: initialValues?.pricing?.incall ?? [],
                         outcall: initialValues?.pricing?.outcall ?? [],
                     },
                 };
+
                 originalRef.current = null;
                 setValues(merged);
                 setError(null);
                 setLoading(false);
                 return;
             }
+
 
             if (context?.slug) {
                 try {
