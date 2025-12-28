@@ -6,6 +6,7 @@ import "./ModelCard.scss";
 import {ModelCardProps} from "@/types/model-card";
 import {useState} from "react";
 import Loading from "@/components/loading/Loading";
+import { normalizeSrc } from "@/utils/image";
 
 export default function ModelCard({src, alt = "", name, href, priority}: ModelCardProps) {
     const isStatic = typeof src !== "string";
@@ -21,7 +22,7 @@ export default function ModelCard({src, alt = "", name, href, priority}: ModelCa
         <Link href={href} className="model-card" aria-label={`Open ${name}`} tabIndex={0} onClick={handleClick}>
             <div className="model-card__media">
                 <Image
-                    src={src}
+                    src={normalizeSrc(src)}
                     alt={alt || name}
                     fill
                     sizes="(max-width: 600px) 92vw,(max-width: 900px) 44vw,(max-width: 1400px) 30vw,22vw"

@@ -409,13 +409,13 @@ export default function ModelUpsertModal({
 
         let uploadedCoverUrl: string | undefined;
         if (coverFile) {
-            const [u] = await uploadFiles([coverFile], `${baseDest}`);
+            const [u] = await uploadFiles([coverFile], `${baseDest}/cover`);
             uploadedCoverUrl = u;
         }
 
         let uploadedGalleryUrls: string[] = [];
         if (galleryNewFiles.length) {
-            uploadedGalleryUrls = await uploadFiles(galleryNewFiles, `${baseDest}/gallery`);
+            uploadedGalleryUrls = await uploadFiles(galleryNewFiles, `${baseDest}/images`);
         }
 
         let uploadedVideoUrls: string[] = [];
@@ -431,8 +431,9 @@ export default function ModelUpsertModal({
                 const imgFiles = localStories.filter(s => s.type === "image" && s.file).map(s => s.file!);
                 const vidFiles = localStories.filter(s => s.type === "video" && s.file).map(s => s.file!);
 
-                const uploadedImgs = await uploadFiles(imgFiles, `${baseDest}/stories`);
-                const uploadedVids = await uploadFiles(vidFiles, `${baseDest}/stories`);
+                const uploadedImgs = await uploadFiles(imgFiles, `${baseDest}/stories/images`);
+                const uploadedVids = await uploadFiles(vidFiles, `${baseDest}/stories/videos`);
+
 
                 uploadedStories = [
                     ...uploadedImgs.map(url => ({ url, type: "image" as const })),
@@ -963,7 +964,10 @@ export default function ModelUpsertModal({
                                         <ImageList cols={4} gap={8} sx={{m: 0, overflow: "hidden"}}>
                                             {(values.gallery ?? []).map((rawUrl) => {
                                                 const url = normalizeSrc(rawUrl);
-                                                const unopt = url.startsWith("http") || url.startsWith("blob:") || url.startsWith("data:");
+                                                const unopt =
+                                                    url.startsWith("/uploads") ||
+                                                    url.startsWith("blob:") ||
+                                                    url.startsWith("data:");
                                                 return (
                                                     <ImageListItem key={url} sx={{position: "relative"}}>
                                                         <div style={{
