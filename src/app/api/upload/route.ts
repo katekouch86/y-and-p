@@ -1,34 +1,40 @@
 import { NextResponse } from "next/server";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { r2 } from "@/lib/r2";
 import path from "path";
-import fs from "fs/promises";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
     const form = await req.formData();
     const files = form.getAll("files") as File[];
-    const dest = String(form.get("dest") || "images");
+    const dest = String(form.get("dest") || "");
 
-    if (!files.length) {
-        return NextResponse.json({ message: "No files" }, { status: 400 });
+    if (!files.length || !dest) {
+        return NextResponse.json({ message: "No files or dest" }, { status: 400 });
     }
 
-    const baseDir = path.join(process.cwd(), "public", "uploads", dest);
-    await fs.mkdir(baseDir, { recursive: true });
-
-    const urls: string[] = [];
+    const uploaded: { url: string }[] = [];
 
     for (const file of files) {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name) || "";
-        const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-        const fullPath = path.join(baseDir, name);
+        const ext = path.extname(file.name);
+        const key = `${dest}/${Date.now()}-${crypto.randomUUID()}${ext}`;
 
-        await fs.writeFile(fullPath, buffer);
-        urls.push(`/uploads/${dest}/${name}`);
+        await r2.send(
+            new PutObjectCommand({
+                Bucket: process.env.R2_BUCKET_NAME!,
+                Key: key,
+                Body: buffer,
+                ContentType: file.type,
+            })
+        );
+
+        uploaded.push({
+            url: `${process.env.R2_PUBLIC_URL}/${key}`,
+        });
     }
 
-    return NextResponse.json({
-        files: urls.map((url) => ({ url })),
-    });
+    return NextResponse.json({ files: uploaded });
 }

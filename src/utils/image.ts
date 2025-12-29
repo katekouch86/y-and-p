@@ -1,17 +1,22 @@
-import type {StaticImageData} from "next/image";
+import type { StaticImageData } from "next/image";
 
-export const normalizeSrc = (s?: string | StaticImageData): string | StaticImageData => {
-    if (!s) return "/images/placeholder.jpg";
+export function normalizeSrc(
+    src?: string | StaticImageData
+): string | StaticImageData {
+    if (!src) return "/images/placeholder.jpg";
 
-    if (typeof s !== "string") return s;
-
-    if (
-        s.startsWith("http") ||
-        s.startsWith("blob:") ||
-        s.startsWith("data:")
-    ) {
-        return s;
+    if (typeof src !== "string") {
+        return src;
     }
 
-    return s.startsWith("/") ? s : `/${s}`;
-};
+    if (
+        src.startsWith("http://") ||
+        src.startsWith("https://") ||
+        src.startsWith("blob:") ||
+        src.startsWith("data:")
+    ) {
+        return src;
+    }
+
+    return src.startsWith("/") ? src : `/${src}`;
+}
