@@ -79,8 +79,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
         if (!updated) {
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
-        revalidateTag("models");
-        revalidateTag(`model:${slug}`);
+        revalidateTag("models", "max");
+        revalidateTag(`model:${slug}`, "max");
         return NextResponse.json(updated);
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Failed to update model";
@@ -102,8 +102,8 @@ export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse>
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
 
-        revalidateTag("models");
-        revalidateTag(`model:${slug}`);
+        revalidateTag("models", "max");
+        revalidateTag(`model:${slug}`, "max");
 
         return NextResponse.json(
             {

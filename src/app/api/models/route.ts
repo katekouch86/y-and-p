@@ -51,8 +51,8 @@ export async function POST(req: Request) {
             stories,
         });
 
-        revalidateTag("models");
-        revalidateTag(`model:${model.slug}`);
+        revalidateTag("models", "max");
+        revalidateTag(`model:${model.slug}`, "max");
 
         return NextResponse.json(model, { status: 201 });
 

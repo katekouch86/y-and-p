@@ -8,6 +8,10 @@ import type { ModelCardList } from "@/types/model-card-list";
 
 const PUBLIC_REVALIDATE_SECONDS = 60 * 60;
 
+function toPlain<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value)) as T;
+}
+
 type PublicModelListItem = Pick<
     ModelRecord,
     "_id" | "slug" | "name" | "photo" | "city" | "availability" | "stories" | "updatedAt"
@@ -16,19 +20,23 @@ type PublicModelListItem = Pick<
 async function queryPublicModelList(): Promise<PublicModelListItem[]> {
     await dbConnect();
 
-    return Model.find({}, "_id slug name photo city availability stories updatedAt")
+    const docs = await Model.find({}, "_id slug name photo city availability stories updatedAt")
         .sort({ updatedAt: -1 })
         .lean<PublicModelListItem[]>()
         .exec();
+
+    return toPlain(docs);
 }
 
 async function queryAdminModelList(): Promise<ModelCardList[]> {
     await dbConnect();
 
-    return Model.find({}, "slug name photo availability updatedAt")
+    const docs = await Model.find({}, "slug name photo availability updatedAt")
         .sort({ updatedAt: -1 })
         .lean<ModelCardList[]>()
         .exec();
+
+    return toPlain(docs);
 }
 
 export async function getPublicModelList(): Promise<PublicModelListItem[]> {
@@ -108,12 +116,14 @@ export async function getAdminModelList(): Promise<ModelCardList[]> {
 async function queryModelBySlug(slug: string): Promise<ModelRecord | null> {
     await dbConnect();
 
-    return Model.findOne(
+    const doc = await Model.findOne(
         { slug },
         "_id slug name about photo gallery videos stories age nationality languages eyeColor hairColor dressSize shoeSize heightCm weightKg cupSize smoking drinking snowParty tattoo piercing silicone city availability pricing schedule createdAt updatedAt"
     )
         .lean<ModelRecord | null>()
         .exec();
+
+    return doc ? toPlain(doc) : null;
 }
 
 export async function getModelBySlug(slug: string): Promise<ModelRecord | null> {

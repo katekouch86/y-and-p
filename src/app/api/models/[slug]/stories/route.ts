@@ -19,8 +19,8 @@ export async function POST(
     ).lean();
 
     if (!updated) return NextResponse.json({ message: "Model not found" }, { status: 404 });
-    revalidateTag("models");
-    revalidateTag(`model:${slug}`);
+    revalidateTag("models", "max");
+    revalidateTag(`model:${slug}`, "max");
     return NextResponse.json(updated);
 }
 
@@ -39,7 +39,7 @@ export async function DELETE(
     ).lean();
 
     if (!updated) return NextResponse.json({ message: "Model not found" }, { status: 404 });
-    revalidateTag("models");
-    revalidateTag(`model:${slug}`);
+    revalidateTag("models", "max");
+    revalidateTag(`model:${slug}`, "max");
     return NextResponse.json(updated);
 }
