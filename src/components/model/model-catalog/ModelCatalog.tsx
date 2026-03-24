@@ -1,43 +1,15 @@
-"use client";
-
 import "./ModelCatalog.scss";
 import ModelCard from "@/components/model/model-card/ModelCard";
 import { isAvailableNow, canonCity } from "@/utils/availability";
-import { useEffect, useState } from "react";
-import Loading from "@/components/loading/Loading";
 import { ModelCatalogItemProps } from "@/types/model-catalog-item";
 
-export default function ModelCatalog({ city }: { city: string }) {
-    const [models, setModels] = useState<ModelCatalogItemProps[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-
-    useEffect(() => {
-        const fetchModels = async () => {
-            try {
-                setLoading(true);
-
-                const params = new URLSearchParams();
-                if (city) params.set("city", city);
-
-                const response = await fetch(
-                    "/api/models/get-list?" + params.toString()
-                );
-
-                const data: ModelCatalogItemProps[] = await response.json();
-                setModels(data);
-            } catch (err) {
-                console.log("Failed to fetch models", err);
-                setModels([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchModels();
-    }, [city]);
-
-    if (loading) return <Loading />;
-
+export default function ModelCatalog({
+    city,
+    models,
+}: {
+    city: string;
+    models: ModelCatalogItemProps[];
+}) {
     // Universal date parser (supports DD.MM.YYYY + ISO)
     const parseDate = (str: string) => {
         if (str.includes(".")) {
@@ -117,7 +89,6 @@ export default function ModelCatalog({ city }: { city: string }) {
                                 src={it.photo}
                                 name={it.name}
                                 href={`/city/${canonCity(city)}/model/${it.slug}`}
-                                priority={false}
                             />
                         ))}
                     </section>

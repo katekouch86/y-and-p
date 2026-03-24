@@ -8,6 +8,7 @@ import ModelUpsertModal from "@/components/model-upsert-modal/ModelUpsertModal";
 import type { ModelValues } from "@/types/model";
 import { AvailabilityList } from "@/types/availability";
 import { ModelCardList } from "@/types/model-card-list";
+import { normalizeSrc, shouldBypassImageOptimization } from "@/utils/image";
 
 const ModelList = () => {
   const [models, setModels] = useState<ModelCardList[]>([]);
@@ -44,13 +45,6 @@ const ModelList = () => {
       const end = new Date(a.endDate);
       return start <= now && now <= end;
     });
-  };
-
-  const normalizePhotoSrc = (raw?: string): string => {
-    if (!raw) return "/images/placeholder.jpg";
-    if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
-    if (raw.startsWith("/")) return raw;
-    return `/${raw}`;
   };
 
   const submitCreate = async (payload: ModelValues) => {
@@ -119,17 +113,20 @@ const ModelList = () => {
                 : "—";
 
             const isDeleting = deletingSlug === model.slug;
+            const photoSrc = normalizeSrc(model.photo);
+            const unoptimized = shouldBypassImageOptimization(photoSrc);
 
             return (
                 <div key={model._id} className={`model-list__card ${available ? "available" : "unavailable"}`}>
                   <div className="model-list__photo-wrap">
                     <Image
-                        src={normalizePhotoSrc(model.photo)}
+                        src={photoSrc}
                         alt={model.name}
                         fill
                         quality={90}
                         priority={idx < 4}
                         sizes="(max-width: 600px) 100vw, (max-width: 1200px) 33vw, 300px"
+                        unoptimized={unoptimized}
                         className="model-list__photo"
                         style={{ objectFit: "cover" }}
                     />

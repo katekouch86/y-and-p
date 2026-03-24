@@ -28,6 +28,7 @@ export async function POST(req: Request) {
                 Key: key,
                 Body: buffer,
                 ContentType: file.type,
+                CacheControl: "public, max-age=31536000, immutable",
             })
         );
 

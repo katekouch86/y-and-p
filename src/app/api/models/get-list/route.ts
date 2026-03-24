@@ -1,26 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbConnect } from "@/lib/mongoose";
-import Model from "@/db/Model";
+import { getCatalogModelsByCity, getPublicModelList, getStoryModelsByCity } from "@/lib/model-data";
+import { canonCity } from "@/utils/availability";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
     try {
-        await dbConnect();
-
         const { searchParams } = new URL(req.url);
         const city = searchParams.get("city")?.trim() || null;
+        const available = searchParams.get("available")?.trim();
+        const limitValue = Number(searchParams.get("limit"));
+        const limit = Number.isFinite(limitValue) && limitValue > 0 ? limitValue : 24;
+        const includeStories = searchParams.get("includeStories") === "true" || available === "now";
 
-        const projection =
-            "slug name photo gallery videos availability stories updatedAt";
+        const docs = includeStories
+            ? await getStoryModelsByCity(city ?? undefined, limit)
+            : city
+                ? await getCatalogModelsByCity(canonCity(city))
+                : await getPublicModelList();
 
-        const filter = {};
-
-        const docs = await Model.find(filter, projection)
-            .sort({ updatedAt: -1 })
-            .lean();
-
-        return NextResponse.json(docs);
+        return NextResponse.json(docs, {
+            headers: {
+                "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+            },
+        });
 
     } catch (e) {
         return NextResponse.json(
@@ -29,4 +32,3 @@ export async function GET(req: NextRequest) {
         );
     }
 }
-

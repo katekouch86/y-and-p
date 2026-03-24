@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import StoryViewer from "../story-viewer/StoryViewer";
 import "./Stories.scss";
 
@@ -15,23 +15,14 @@ type ApiModelListItem = {
     stories?: { _id: string; url: string; type: "image" | "video" }[];
 };
 
-export default function Stories({ city }: { city?: string }) {
-    const [items, setItems] = useState<ApiModelListItem[]>([]);
+export default function Stories({
+    city,
+    items,
+}: {
+    city?: string;
+    items: ApiModelListItem[];
+}) {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-    useEffect(() => {
-        const run = async () => {
-            const qs = new URLSearchParams({ available: "now", limit: "24" });
-            if (city) qs.set("city", city);
-            const res = await fetch(`/api/models/get-list?${qs.toString()}`, {
-                cache: "no-store",
-            });
-            if (!res.ok) return setItems([]);
-            const data = await res.json();
-            setItems(Array.isArray(data) ? data : []);
-        };
-        run();
-    }, [city]);
 
     if (!items.length) return null;
 

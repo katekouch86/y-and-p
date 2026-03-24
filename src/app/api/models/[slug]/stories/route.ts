@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { dbConnect } from "@/lib/mongoose";
 import Model from "@/db/Model";
 
@@ -18,6 +19,8 @@ export async function POST(
     ).lean();
 
     if (!updated) return NextResponse.json({ message: "Model not found" }, { status: 404 });
+    revalidateTag("models");
+    revalidateTag(`model:${slug}`);
     return NextResponse.json(updated);
 }
 
@@ -36,5 +39,7 @@ export async function DELETE(
     ).lean();
 
     if (!updated) return NextResponse.json({ message: "Model not found" }, { status: 404 });
+    revalidateTag("models");
+    revalidateTag(`model:${slug}`);
     return NextResponse.json(updated);
 }

@@ -4,9 +4,38 @@ const fmt = new Intl.DateTimeFormat("en-GB", {
     year: "numeric",
 });
 
+function parseDateInput(value?: string): Date | null {
+    if (!value) return null;
+
+    if (value.includes(".")) {
+        const [day, month, year] = value.split(".");
+        const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function isValidDateRange(startValue?: string, endValue?: string) {
+    const start = parseDateInput(startValue);
+    const end = parseDateInput(endValue);
+
+    return {
+        start,
+        end,
+        valid: Boolean(start && end),
+    };
+}
+
 export function formatRange(startISO: string, endISO: string) {
-    const s = new Date(startISO);
-    const e = new Date(endISO);
+    const { start: s, end: e, valid } = isValidDateRange(startISO, endISO);
+
+    if (!valid || !s || !e) {
+        if (startISO && endISO) return `${startISO} – ${endISO}`;
+        return startISO || endISO || "Dates unavailable";
+    }
+
     const sameYear = s.getFullYear() === e.getFullYear();
     const sameMonth = sameYear && s.getMonth() === e.getMonth();
 

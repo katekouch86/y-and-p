@@ -7,6 +7,7 @@ import {IoMdClose} from "react-icons/io";
 import {MdOutlineKeyboardArrowLeft} from "react-icons/md";
 import {MdOutlineKeyboardArrowRight} from "react-icons/md";
 import {LightboxProps} from "@/types/lightbox";
+import { normalizeSrc, shouldBypassImageOptimization } from "@/utils/image";
 
 export default function Lightbox({images, name, initialIndex = 0, onClose}: LightboxProps) {
     const safeStart = Math.min(Math.max(initialIndex, 0), Math.max(images.length - 1, 0));
@@ -32,6 +33,9 @@ export default function Lightbox({images, name, initialIndex = 0, onClose}: Ligh
 
     if (!images.length) return null;
 
+    const activeSrc = normalizeSrc(images[active]);
+    const unoptimized = shouldBypassImageOptimization(activeSrc);
+
     return (
         <div className="lightbox" role="dialog" aria-modal="true" aria-label={`${name} photo viewer`} onClick={onClose}>
             <button className="lightbox__close" aria-label="Close" onClick={(e) => {
@@ -50,11 +54,12 @@ export default function Lightbox({images, name, initialIndex = 0, onClose}: Ligh
 
             <div className="lightbox__stage" onClick={(e) => e.stopPropagation()}>
                 <Image
-                    src={images[active]}
+                    src={activeSrc}
                     alt={`${name} photo ${active + 1}`}
                     fill
                     sizes="100vw"
                     priority
+                    unoptimized={unoptimized}
                     style={{objectFit: "contain"}}
                 />
             </div>

@@ -1,32 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbConnect } from "@/lib/mongoose";
 import Model from "@/db/Model";
 import type { Model as ModelDTO } from "@/models/model.model";
+import { dbConnect } from "@/lib/mongoose";
+import { revalidateTag } from "next/cache";
+import { getModelBySlug } from "@/lib/model-data";
 
 export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ slug: string }> };
-type AvailabilityItem = { city?: string; [key: string]: unknown };
 
 const uniq = (arr?: unknown[]) =>
     Array.from(new Set((arr ?? []).filter(Boolean))) as string[];
 
 export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     try {
-        await dbConnect();
         const { slug } = await ctx.params;
-
-        const doc = await Model.findOne(
-            { slug },
-            "_id slug name about photo gallery videos stories age nationality languages eyeColor hairColor dressSize shoeSize heightCm weightKg cupSize smoking drinking snowParty tattoo piercing silicone city availability pricing schedule createdAt updatedAt"
-        )
-            .lean<ModelDTO>()
-            .exec();
+        const doc = (await getModelBySlug(slug)) as ModelDTO | null;
 
         if (!doc) {
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
-        return NextResponse.json(doc);
+        return NextResponse.json(doc, {
+            headers: {
+                "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+            },
+        });
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Failed to fetch model";
         return NextResponse.json({ message }, { status: 500 });
@@ -81,6 +79,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
         if (!updated) {
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
+        revalidateTag("models");
+        revalidateTag(`model:${slug}`);
         return NextResponse.json(updated);
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Failed to update model";
@@ -101,6 +101,9 @@ export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse>
         if (!deleted) {
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
+
+        revalidateTag("models");
+        revalidateTag(`model:${slug}`);
 
         return NextResponse.json(
             {

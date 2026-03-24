@@ -13,6 +13,7 @@ import Lightbox from "@/components/lightbox/Lightbox";
 import { MdOutlineKeyboardArrowLeft, MdOutlineKeyboardArrowRight } from "react-icons/md";
 import "./ModelSlider.scss";
 import { ModelSlideProps } from "@/types/model-slide";
+import { normalizeSrc, shouldBypassImageOptimization } from "@/utils/image";
 
 export default function ModelSlider({ images, name, startIndex = 0 }: ModelSlideProps) {
     const prevRef = useRef<HTMLButtonElement | null>(null);
@@ -65,24 +66,30 @@ export default function ModelSlider({ images, name, startIndex = 0 }: ModelSlide
                         swiperRef.current = swiper as SwiperType;
                     }}
                 >
-                    {images.map((img, i) => (
-                        <SwiperSlide className="model-slider__slide" key={i}>
-                            <button
-                                className="model-slider__media"
-                                onClick={() => setLightboxIndex(i)}
-                                aria-label={`Open ${name} photo ${i + 1}`}
-                            >
-                                <Image
-                                    src={img}
-                                    alt={`${name} photo ${i + 1}`}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 900px"
-                                    priority={i === 0}
-                                    style={{ objectFit: "cover" }}
-                                />
-                            </button>
-                        </SwiperSlide>
-                    ))}
+                    {images.map((img, i) => {
+                        const normalizedSrc = normalizeSrc(img);
+                        const unoptimized = shouldBypassImageOptimization(normalizedSrc);
+
+                        return (
+                            <SwiperSlide className="model-slider__slide" key={i}>
+                                <button
+                                    className="model-slider__media"
+                                    onClick={() => setLightboxIndex(i)}
+                                    aria-label={`Open ${name} photo ${i + 1}`}
+                                >
+                                    <Image
+                                        src={normalizedSrc}
+                                        alt={`${name} photo ${i + 1}`}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 900px"
+                                        priority={i === 0}
+                                        unoptimized={unoptimized}
+                                        style={{ objectFit: "cover" }}
+                                    />
+                                </button>
+                            </SwiperSlide>
+                        );
+                    })}
                 </Swiper>
 
                 <div className="model-slider__nav">

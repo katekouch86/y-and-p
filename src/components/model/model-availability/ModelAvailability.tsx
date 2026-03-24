@@ -2,7 +2,7 @@
 
 import { AvailabilityProps } from "@/types/availability";
 import "./ModelAvailability.scss";
-import {formatRange} from "@/utils/formatRange";
+import {formatRange, isValidDateRange} from "@/utils/formatRange";
 
 export default function ModelAvailability({ model }: AvailabilityProps) {
     const items = model.availability ?? [];
@@ -19,9 +19,8 @@ export default function ModelAvailability({ model }: AvailabilityProps) {
             ) : (
                 <ul className="model-availability__list">
                     {items.map((a, i) => {
-                        const start = new Date(a.startDate);
-                        const end = new Date(a.endDate);
-                        const isNow = start <= now && now <= end;
+                        const { start, end, valid } = isValidDateRange(a.startDate, a.endDate);
+                        const isNow = Boolean(valid && start && end && start <= now && now <= end);
 
                         return (
                             <li key={i} className="model-availability__item">

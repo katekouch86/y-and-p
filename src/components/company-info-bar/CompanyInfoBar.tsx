@@ -60,6 +60,7 @@ export default function CompanyInfoBar() {
                         alt="Y&P Agency banner image, elegant evening ambience in Italy"
                         className="company-info__img"
                         priority
+                        unoptimized
                     />
                 </figure>
             </div>

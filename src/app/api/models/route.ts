@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
 import Model from "@/db/Model";
-import { MongoServerError } from "mongodb";
+import { revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
-
-type StoryItem = { url: string; type: string };
 
 export async function POST(req: Request) {
     try {
@@ -53,6 +51,9 @@ export async function POST(req: Request) {
             stories,
         });
 
+        revalidateTag("models");
+        revalidateTag(`model:${model.slug}`);
+
         return NextResponse.json(model, { status: 201 });
 
     } catch (error: unknown) {
@@ -64,5 +65,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ message }, { status: 500 });
     }
 }
-
-
