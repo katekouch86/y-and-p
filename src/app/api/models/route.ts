@@ -5,6 +5,8 @@ import { revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 
+const expireTagNow = (tag: string) => revalidateTag(tag, { expire: 0 });
+
 export async function POST(req: Request) {
     try {
         await dbConnect();
@@ -51,8 +53,8 @@ export async function POST(req: Request) {
             stories,
         });
 
-        revalidateTag("models", "max");
-        revalidateTag(`model:${model.slug}`, "max");
+        expireTagNow("models");
+        expireTagNow(`model:${model.slug}`);
 
         return NextResponse.json(model, { status: 201 });
 

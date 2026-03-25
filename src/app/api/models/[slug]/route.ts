@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
+const expireTagNow = (tag: string) => revalidateTag(tag, { expire: 0 });
+
 const uniq = (arr?: unknown[]) =>
     Array.from(new Set((arr ?? []).filter(Boolean))) as string[];
 
@@ -79,8 +81,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
         if (!updated) {
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
-        revalidateTag("models", "max");
-        revalidateTag(`model:${slug}`, "max");
+        expireTagNow("models");
+        expireTagNow(`model:${slug}`);
         return NextResponse.json(updated);
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Failed to update model";
@@ -102,8 +104,8 @@ export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse>
             return NextResponse.json({ message: "Model not found" }, { status: 404 });
         }
 
-        revalidateTag("models", "max");
-        revalidateTag(`model:${slug}`, "max");
+        expireTagNow("models");
+        expireTagNow(`model:${slug}`);
 
         return NextResponse.json(
             {

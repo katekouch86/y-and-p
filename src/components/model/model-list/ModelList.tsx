@@ -19,23 +19,25 @@ const ModelList = () => {
 
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/models/all-models", { cache: "no-store" });
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setModels(data);
-          setError(null);
-        } else {
-          setError(data?.message || "Failed to load models");
-          setModels([]);
-        }
-      } catch {
-        setError("Network error while loading models");
+  const loadModels = async () => {
+    try {
+      const res = await fetch("/api/models/all-models", { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setModels(data);
+        setError(null);
+      } else {
+        setError(data?.message || "Failed to load models");
         setModels([]);
       }
-    })();
+    } catch {
+      setError("Network error while loading models");
+      setModels([]);
+    }
+  };
+
+  useEffect(() => {
+    void loadModels();
   }, []);
 
   const isAvailable = (availability: AvailabilityList[]) => {
@@ -180,8 +182,8 @@ const ModelList = () => {
             mode="create"
             onClose={() => setCreateOpen(false)}
             onSubmit={(payload) => submitCreate(payload as ModelValues)}
-            onSaved={(created) => {
-              setModels((prev) => [created as ModelCardList, ...prev]);
+            onSaved={async () => {
+              await loadModels();
             }}
             initialValues={{
               languages: ["English"],
@@ -195,9 +197,8 @@ const ModelList = () => {
             onClose={() => setEditCtx({ open: false })}
             context={{ slug: editCtx.slug, title: editCtx.title }}
             onSubmit={(payload) => submitEdit(payload as Partial<ModelValues>)}
-            onSaved={(updated) => {
-              const up = updated as Partial<ModelCardList> & { slug: string };
-              setModels((prev) => prev.map((m) => (m.slug === up.slug ? { ...m, ...up } : m)));
+            onSaved={async () => {
+              await loadModels();
             }}
         />
       </div>

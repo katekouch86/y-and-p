@@ -3,6 +3,8 @@ import { revalidateTag } from "next/cache";
 import { dbConnect } from "@/lib/mongoose";
 import Model from "@/db/Model";
 
+const expireTagNow = (tag: string) => revalidateTag(tag, { expire: 0 });
+
 export async function POST(
     req: NextRequest,
     context: { params: Promise<{ slug: string }> }
@@ -19,8 +21,8 @@ export async function POST(
     ).lean();
 
     if (!updated) return NextResponse.json({ message: "Model not found" }, { status: 404 });
-    revalidateTag("models", "max");
-    revalidateTag(`model:${slug}`, "max");
+    expireTagNow("models");
+    expireTagNow(`model:${slug}`);
     return NextResponse.json(updated);
 }
 
@@ -39,7 +41,7 @@ export async function DELETE(
     ).lean();
 
     if (!updated) return NextResponse.json({ message: "Model not found" }, { status: 404 });
-    revalidateTag("models", "max");
-    revalidateTag(`model:${slug}`, "max");
+    expireTagNow("models");
+    expireTagNow(`model:${slug}`);
     return NextResponse.json(updated);
 }
