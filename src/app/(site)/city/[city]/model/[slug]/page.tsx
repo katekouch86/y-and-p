@@ -8,6 +8,8 @@ import {canonCity} from "@/utils/availability";
 import ModelAboutSection from "@/components/model/model-video/ModelVideo";
 import { getModelBySlug } from "@/lib/model-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function ModelPage({
                                             params,
                                         }: {

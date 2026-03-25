@@ -2,6 +2,8 @@ import Stories from "@/components/stories/Stories";
 import ModelCatalog from "@/components/model/model-catalog/ModelCatalog";
 import { getCatalogModelsByCity, getStoryModelsByCity } from "@/lib/model-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page({
     params,
 }: {

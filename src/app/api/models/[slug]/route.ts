@@ -24,7 +24,7 @@ export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
         }
         return NextResponse.json(doc, {
             headers: {
-                "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+                "Cache-Control": "no-store, no-cache, must-revalidate",
             },
         });
     } catch (e: unknown) {

@@ -1,12 +1,9 @@
-import { unstable_cache } from "next/cache";
 import Model from "@/db/Model";
 import { dbConnect } from "@/lib/mongoose";
 import type { Model as ModelRecord, Story } from "@/models/model.model";
 import { canonCity, isAvailableNow } from "@/utils/availability";
 import type { ModelCatalogItemProps } from "@/types/model-catalog-item";
 import type { ModelCardList } from "@/types/model-card-list";
-
-const PUBLIC_REVALIDATE_SECONDS = 60 * 60;
 
 function toPlain<T>(value: T): T {
     return JSON.parse(JSON.stringify(value)) as T;
@@ -40,10 +37,7 @@ async function queryAdminModelList(): Promise<ModelCardList[]> {
 }
 
 export async function getPublicModelList(): Promise<PublicModelListItem[]> {
-    return unstable_cache(queryPublicModelList, ["public-model-list"], {
-        revalidate: PUBLIC_REVALIDATE_SECONDS,
-        tags: ["models"],
-    })();
+    return queryPublicModelList();
 }
 
 export async function getCatalogModelsByCity(city: string): Promise<ModelCatalogItemProps[]> {
@@ -107,10 +101,7 @@ export async function getStoryModelsByCity(
 }
 
 export async function getAdminModelList(): Promise<ModelCardList[]> {
-    return unstable_cache(queryAdminModelList, ["admin-model-list"], {
-        revalidate: PUBLIC_REVALIDATE_SECONDS,
-        tags: ["models"],
-    })();
+    return queryAdminModelList();
 }
 
 async function queryModelBySlug(slug: string): Promise<ModelRecord | null> {
@@ -127,8 +118,5 @@ async function queryModelBySlug(slug: string): Promise<ModelRecord | null> {
 }
 
 export async function getModelBySlug(slug: string): Promise<ModelRecord | null> {
-    return unstable_cache(() => queryModelBySlug(slug), ["public-model", slug], {
-        revalidate: PUBLIC_REVALIDATE_SECONDS,
-        tags: ["models", `model:${slug}`],
-    })();
+    return queryModelBySlug(slug);
 }
