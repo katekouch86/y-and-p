@@ -21,22 +21,21 @@ type NormalizedAvailability = { city: City; startDate: string; endDate: string }
 const normalizeAvailability = (value: unknown): NormalizedAvailability[] | null => {
     if (!Array.isArray(value)) return null;
 
-    const availability = value
-        .map((slot) => {
-            if (!slot || typeof slot !== "object") return null;
+    const availability: NormalizedAvailability[] = [];
 
-            const candidate = slot as { city?: string; startDate?: string; endDate?: string };
-            const city = getCityLabel(candidate.city);
-            if (!city) return null;
+    for (const slot of value) {
+        if (!slot || typeof slot !== "object") continue;
 
-            return {
-                ...candidate,
-                city,
-                startDate: candidate.startDate?.trim() ?? "",
-                endDate: candidate.endDate?.trim() ?? "",
-            };
-        })
-        .filter((slot): slot is NormalizedAvailability => slot !== null);
+        const candidate = slot as { city?: string; startDate?: string; endDate?: string };
+        const city = getCityLabel(candidate.city);
+        if (!city) continue;
+
+        availability.push({
+            city,
+            startDate: candidate.startDate?.trim() ?? "",
+            endDate: candidate.endDate?.trim() ?? "",
+        });
+    }
 
     return availability.length ? availability : null;
 };

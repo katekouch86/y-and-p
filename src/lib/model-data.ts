@@ -13,12 +13,16 @@ function toPlain<T>(value: T): T {
 function normalizeAvailability<T extends { city: string; startDate: string; endDate: string }>(
     availability?: T[] | null
 ): T[] {
-    return (availability ?? [])
-        .map((slot) => {
-            const city = getCityLabel(slot.city);
-            return city ? { ...slot, city } : null;
-        })
-        .filter((slot): slot is T => slot !== null);
+    const normalized: T[] = [];
+
+    for (const slot of availability ?? []) {
+        const city = getCityLabel(slot.city);
+        if (!city) continue;
+
+        normalized.push({ ...slot, city } as T);
+    }
+
+    return normalized;
 }
 
 function normalizeModelCities<T extends { city?: string | null; availability?: { city: string; startDate: string; endDate: string }[] | null }>(
@@ -31,7 +35,7 @@ function normalizeModelCities<T extends { city?: string | null; availability?: {
         ...model,
         ...(mainCity ? { city: mainCity } : {}),
         availability,
-    };
+    } as T;
 }
 
 type PublicModelListItem = Pick<

@@ -20,11 +20,11 @@ const BASELINE: ModelValues = {
     videoUrl: "",
 };
 
-const normalizeAvailability = (availability?: ModelValues["availability"]) =>
+const normalizeAvailability = (availability?: ModelValues["availability"]): ModelValues["availability"] =>
     availability?.length
         ? availability.map((slot) => ({
             ...slot,
-            city: getCityLabel(slot.city) || "",
+            city: (getCityLabel(slot.city) || "") as ModelValues["availability"][number]["city"],
         }))
         : BASELINE.availability;
 

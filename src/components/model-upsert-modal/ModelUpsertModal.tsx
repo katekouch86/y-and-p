@@ -84,11 +84,11 @@ const EYE_COLOR_OPTIONS = ["Blue", "Green", "Brown", "Hazel", "Grey", "Amber", "
 const HAIR_COLOR_OPTIONS = ["Blonde", "Brown", "Black", "Red", "Auburn", "Chestnut", "Grey", "White", "Dyed", "Highlights"];
 const createEmptyAvailability = (): Availability => ({ city: "", startDate: "", endDate: "" });
 
-const normalizeAvailability = (availability?: Availability[]) =>
+const normalizeAvailability = (availability?: Availability[]): Availability[] =>
     availability?.length
         ? availability.map((slot) => ({
             ...slot,
-            city: getCityLabel(slot.city) || "",
+            city: (getCityLabel(slot.city) || "") as Availability["city"],
         }))
         : [createEmptyAvailability()];
 

@@ -8,6 +8,7 @@ import { revalidateTag } from "next/cache";
 export const runtime = "nodejs";
 
 const expireTagNow = (tag: string) => revalidateTag(tag, { expire: 0 });
+type NormalizedAvailability = { city: City; startDate: string; endDate: string };
 
 export async function POST(req: Request) {
     try {
@@ -15,21 +16,19 @@ export async function POST(req: Request) {
 
         const data = await req.json();
 
-        const availability: Array<{ city: City; startDate: string; endDate: string }> = Array.isArray(data.availability)
-            ? data.availability
-                  .map((slot: { city?: string; startDate?: string; endDate?: string }) => {
-                      const city = getCityLabel(slot.city);
-                      if (!city) return null;
+        const availability: NormalizedAvailability[] = [];
+        if (Array.isArray(data.availability)) {
+            for (const rawSlot of data.availability as Array<{ city?: string; startDate?: string; endDate?: string }>) {
+                const city = getCityLabel(rawSlot.city);
+                if (!city) continue;
 
-                      return {
-                          ...slot,
-                          city,
-                          startDate: slot.startDate?.trim() ?? "",
-                          endDate: slot.endDate?.trim() ?? "",
-                      };
-                  })
-                  .filter((slot): slot is { city: City; startDate: string; endDate: string } => slot !== null)
-            : [];
+                availability.push({
+                    city,
+                    startDate: rawSlot.startDate?.trim() ?? "",
+                    endDate: rawSlot.endDate?.trim() ?? "",
+                });
+            }
+        }
 
         const mainCity = availability[0]?.city;
         if (!mainCity) {
