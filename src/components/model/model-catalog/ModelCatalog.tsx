@@ -1,5 +1,6 @@
 import "./ModelCatalog.scss";
 import ModelCard from "@/components/model/model-card/ModelCard";
+import { getCityLabel } from "@/constants/cities";
 import { isAvailableNow, canonCity } from "@/utils/availability";
 import { ModelCatalogItemProps } from "@/types/model-catalog-item";
 
@@ -40,6 +41,7 @@ export default function ModelCatalog({
     };
 
     // AVAILABLE NOW (today is between start & end)
+    const cityLabel = getCityLabel(city) || city;
     const availableNow = models.filter((m) =>
         isAvailableNow(m.availability, city)
     );
@@ -60,7 +62,7 @@ export default function ModelCatalog({
                 {availableNow.length === 0 && (
                     <div className="model-catalog__empty">
                         <h1 className="model-catalog__empty-text">
-                            No models available now in {canonCity(city)}.
+                            No models available now in {cityLabel}.
                         </h1>
                     </div>
                 )}

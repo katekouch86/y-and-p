@@ -1,4 +1,5 @@
 import Model from "@/db/Model";
+import { getCityLabel } from "@/constants/cities";
 import { dbConnect } from "@/lib/mongoose";
 import type { Model as ModelRecord, Story } from "@/models/model.model";
 import { canonCity, isAvailableNow } from "@/utils/availability";
@@ -7,6 +8,30 @@ import type { ModelCardList } from "@/types/model-card-list";
 
 function toPlain<T>(value: T): T {
     return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function normalizeAvailability<T extends { city: string; startDate: string; endDate: string }>(
+    availability?: T[] | null
+): T[] {
+    return (availability ?? [])
+        .map((slot) => {
+            const city = getCityLabel(slot.city);
+            return city ? { ...slot, city } : null;
+        })
+        .filter((slot): slot is T => slot !== null);
+}
+
+function normalizeModelCities<T extends { city?: string | null; availability?: { city: string; startDate: string; endDate: string }[] | null }>(
+    model: T
+): T {
+    const availability = normalizeAvailability(model.availability);
+    const mainCity = getCityLabel(model.city ?? "") || availability[0]?.city;
+
+    return {
+        ...model,
+        ...(mainCity ? { city: mainCity } : {}),
+        availability,
+    };
 }
 
 type PublicModelListItem = Pick<
@@ -37,7 +62,7 @@ async function queryAdminModelList(): Promise<ModelCardList[]> {
 }
 
 export async function getPublicModelList(): Promise<PublicModelListItem[]> {
-    return queryPublicModelList();
+    return (await queryPublicModelList()).map((model) => normalizeModelCities(model));
 }
 
 export async function getCatalogModelsByCity(city: string): Promise<ModelCatalogItemProps[]> {
@@ -54,12 +79,7 @@ export async function getCatalogModelsByCity(city: string): Promise<ModelCatalog
             name: model.name,
             photo: model.photo ?? "/images/placeholder.jpg",
             city: model.city,
-            availability:
-                model.availability?.map((slot) => ({
-                    city: slot.city,
-                    startDate: slot.startDate,
-                    endDate: slot.endDate,
-                })) ?? [],
+            availability: normalizeAvailability(model.availability),
         }));
 }
 
@@ -101,7 +121,7 @@ export async function getStoryModelsByCity(
 }
 
 export async function getAdminModelList(): Promise<ModelCardList[]> {
-    return queryAdminModelList();
+    return (await queryAdminModelList()).map((model) => normalizeModelCities(model));
 }
 
 async function queryModelBySlug(slug: string): Promise<ModelRecord | null> {
@@ -114,7 +134,7 @@ async function queryModelBySlug(slug: string): Promise<ModelRecord | null> {
         .lean<ModelRecord | null>()
         .exec();
 
-    return doc ? toPlain(doc) : null;
+    return doc ? normalizeModelCities(toPlain(doc)) : null;
 }
 
 export async function getModelBySlug(slug: string): Promise<ModelRecord | null> {

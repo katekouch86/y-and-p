@@ -1,6 +1,7 @@
+import type { City } from "@/constants/cities";
+
 export type Summary = {
     totalModels: number;
     availableNow: number;
-    milanCount: number;
-    romeCount: number;
+    cityCounts: Record<City, number>;
 };

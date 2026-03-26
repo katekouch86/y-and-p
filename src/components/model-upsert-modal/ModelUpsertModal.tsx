@@ -1,6 +1,7 @@
 "use client";
 
 import React, {useEffect, useMemo, useRef, useState} from "react";
+import { CITIES, getCityLabel } from "@/constants/cities";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Grid, Stack, Button, FormControlLabel, Switch,
@@ -13,8 +14,9 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MovieCreationOutlinedIcon from "@mui/icons-material/MovieCreationOutlined";
 import NextImage from "next/image";
+import type { Availability as ModelAvailability } from "@/types/model";
 
-type Availability = { city: string; startDate: string; endDate: string };
+type Availability = ModelAvailability;
 type PriceItem = { duration: string; price: string };
 type Pricing = { incall?: PriceItem[]; outcall?: PriceItem[] };
 
@@ -80,6 +82,15 @@ const LANGUAGE_OPTIONS = ["English", "Italian", "Ukrainian", "Russian", "Polish"
 const DRESS_SIZE_OPTIONS = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "EU 32", "EU 34", "EU 36", "EU 38", "EU 40", "EU 42", "EU 44", "EU 46"];
 const EYE_COLOR_OPTIONS = ["Blue", "Green", "Brown", "Hazel", "Grey", "Amber", "Black"];
 const HAIR_COLOR_OPTIONS = ["Blonde", "Brown", "Black", "Red", "Auburn", "Chestnut", "Grey", "White", "Dyed", "Highlights"];
+const createEmptyAvailability = (): Availability => ({ city: "", startDate: "", endDate: "" });
+
+const normalizeAvailability = (availability?: Availability[]) =>
+    availability?.length
+        ? availability.map((slot) => ({
+            ...slot,
+            city: getCityLabel(slot.city) || "",
+        }))
+        : [createEmptyAvailability()];
 
 const normalizeSrc = (s?: string) => {
     if (!s) return "/images/placeholder.jpg";
@@ -167,7 +178,7 @@ export default function ModelUpsertModal({
                 videos: [],
                 languages: [],
                 nationality: "",
-                availability: [{city: "", startDate: "", endDate: ""}],
+                availability: [createEmptyAvailability()],
                 pricing: {incall: [], outcall: []},
                 smoking: false,
                 drinking: false,
@@ -194,10 +205,7 @@ export default function ModelUpsertModal({
                     gallery: initialValues?.gallery ?? [],
                     videos: initialValues?.videos ?? [],
                     about: initialValues?.about ?? "",
-                    availability:
-                        initialValues?.availability?.length
-                            ? [{ ...initialValues.availability[0] }]
-                            : baseline.availability,
+                    availability: normalizeAvailability(initialValues?.availability),
                     pricing: {
                         incall: initialValues?.pricing?.incall ?? [],
                         outcall: initialValues?.pricing?.outcall ?? [],
@@ -228,7 +236,7 @@ export default function ModelUpsertModal({
                         gallery: (full.gallery as string[] | undefined) ?? [],
                         videos: (full.videos as string[] | undefined) ?? [],
                         about: full.about ?? "",
-                        availability: full.availability?.length ? [...full.availability] : baseline.availability,
+                        availability: normalizeAvailability(full.availability),
                         pricing: {
                             incall: full.pricing?.incall ?? [],
                             outcall: full.pricing?.outcall ?? [],
@@ -253,9 +261,7 @@ export default function ModelUpsertModal({
                 videos: initialValues?.videos ?? [],
                 about: initialValues?.about ?? "",
                 availability:
-                    initialValues?.availability?.length
-                        ? [...initialValues.availability]
-                        : baseline.availability,
+                    normalizeAvailability(initialValues?.availability),
                 pricing: {
                     incall: initialValues?.pricing?.incall ?? [],
                     outcall: initialValues?.pricing?.outcall ?? [],
@@ -799,10 +805,16 @@ export default function ModelUpsertModal({
                                                 value={item.city}
                                                 onChange={(e) => {
                                                     const next = [...values.availability];
-                                                    next[index].city = e.target.value;
+                                                    next[index].city = getCityLabel(e.target.value) || "";
                                                     set("availability", next);
                                                 }}
-                                            />
+                                                select
+                                            >
+                                                <MenuItem value="" disabled>Select…</MenuItem>
+                                                {CITIES.map((city) => (
+                                                    <MenuItem key={city} value={city}>{city}</MenuItem>
+                                                ))}
+                                            </TextField>
                                         </Grid>
 
                                         {/* START DATE */}
@@ -847,7 +859,7 @@ export default function ModelUpsertModal({
                                                     next.splice(index, 1);
 
                                                     if (next.length === 0) {
-                                                        next = [{ city: "", startDate: "", endDate: "" }];
+                                                        next = [createEmptyAvailability()];
                                                     }
 
                                                     set("availability", next);
@@ -865,7 +877,7 @@ export default function ModelUpsertModal({
                                     onClick={() =>
                                         set("availability", [
                                             ...values.availability,
-                                            { city: "", startDate: "", endDate: "" }
+                                            createEmptyAvailability()
                                         ])
                                     }
                                 >

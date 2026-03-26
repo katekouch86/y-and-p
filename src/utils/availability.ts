@@ -1,3 +1,5 @@
+import { getCitySlug } from "@/constants/cities";
+
 export type AvailabilityItem =
     | { city: string; startDate: string; endDate: string }
     | { city: string; dateRangeText?: string; address?: string; startDate?: string; endDate?: string };
@@ -5,15 +7,7 @@ export type AvailabilityItem =
 export function canonCity(raw?: string): string {
     if (!raw) return "";
 
-    const v = raw.trim().toLowerCase();
-
-    // MILAN
-    if (["milan", "milano", "mailand", "мілан"].includes(v)) return "milan";
-
-    // ROME
-    if (["rome", "roma", "рим", "рома"].includes(v)) return "rome";
-
-    return v;
+    return getCitySlug(raw) || raw.trim().toLowerCase();
 }
 
 

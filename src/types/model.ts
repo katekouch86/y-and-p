@@ -1,4 +1,6 @@
-export type Availability = { city: string; startDate: string; endDate: string };
+import type { City } from "@/constants/cities";
+
+export type Availability = { city: City | ""; startDate: string; endDate: string };
 export type PriceItem = { duration: string; price: string };
 export type Pricing = { incall?: PriceItem[]; outcall?: PriceItem[] };
 

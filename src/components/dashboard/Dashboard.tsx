@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import "./Dashboard.scss";
+import { CITIES } from "@/constants/cities";
 import {Summary} from "@/types/summary";
 import Loading from "@/components/loading/Loading";
 
@@ -33,14 +34,12 @@ const Dashboard = () => {
                     <h3 className="dashboard__available-title">Available Now:</h3>
                     <p className="dashboard__text">{summary.availableNow}</p>
                 </div>
-                <div className="dashboard__available-card">
-                    <h3 className="dashboard__available-title">Milan:</h3>
-                    <p className="dashboard__text">{summary.milanCount}</p>
-                </div>
-                <div className="dashboard__available-card">
-                    <h3 className="dashboard__available-title">Rome:</h3>
-                    <p className="dashboard__text">{summary.romeCount}</p>
-                </div>
+                {CITIES.map((city) => (
+                    <div key={city} className="dashboard__available-card">
+                        <h3 className="dashboard__available-title">{city}:</h3>
+                        <p className="dashboard__text">{summary.cityCounts[city] ?? 0}</p>
+                    </div>
+                ))}
                 <div className="dashboard__available-card">
                     <h3 className="dashboard__available-title">Models:</h3>
                     <p className="dashboard__text">{summary.totalModels}</p>

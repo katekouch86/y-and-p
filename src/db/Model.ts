@@ -1,4 +1,5 @@
 import mongoose, { Schema, models } from "mongoose";
+import { CITIES } from "@/constants/cities";
 
 const StorySchema = new Schema(
     {
@@ -24,7 +25,7 @@ const DayScheduleSchema = new Schema({ day: String, ranges: [TimeRangeSchema] },
 const ScheduleSchema = new Schema({ timezone: String, days: [DayScheduleSchema] }, { _id: false });
 
 const AvailabilitySchema = new Schema(
-    { city: String, startDate: String, endDate: String, address: String },
+    { city: { type: String, enum: CITIES }, startDate: String, endDate: String, address: String },
     { _id: false }
 );
 
@@ -53,7 +54,7 @@ const ModelSchema = new Schema(
             piercing: { type: Boolean, default: false },
             silicone: { type: Boolean, default: false },
 
-            city: { type: String, required: true },
+            city: { type: String, enum: CITIES, required: true },
             availability: { type: [AvailabilitySchema], default: [] },
             schedule: { type: ScheduleSchema },
 

@@ -1,3 +1,4 @@
+import type { City } from "@/constants/cities";
 import { AvailabilityRange } from "@/models/availability.model";
 import { Schedule } from "@/models/schedule.model";
 import { Pricing } from "@/models/pricing.model";
@@ -34,7 +35,7 @@ export type Model = {
 
     about?: string;
 
-    city: string;
+    city: City;
     availability?: AvailabilityRange[];
     schedule?: Schedule;
 

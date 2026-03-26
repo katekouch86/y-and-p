@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCityLabel } from "@/constants/cities";
+import type { City } from "@/constants/cities";
 import Model from "@/db/Model";
 import type { Model as ModelDTO } from "@/models/model.model";
 import { dbConnect } from "@/lib/mongoose";
@@ -13,6 +15,31 @@ const expireTagNow = (tag: string) => revalidateTag(tag, { expire: 0 });
 
 const uniq = (arr?: unknown[]) =>
     Array.from(new Set((arr ?? []).filter(Boolean))) as string[];
+
+type NormalizedAvailability = { city: City; startDate: string; endDate: string };
+
+const normalizeAvailability = (value: unknown): NormalizedAvailability[] | null => {
+    if (!Array.isArray(value)) return null;
+
+    const availability = value
+        .map((slot) => {
+            if (!slot || typeof slot !== "object") return null;
+
+            const candidate = slot as { city?: string; startDate?: string; endDate?: string };
+            const city = getCityLabel(candidate.city);
+            if (!city) return null;
+
+            return {
+                ...candidate,
+                city,
+                startDate: candidate.startDate?.trim() ?? "",
+                endDate: candidate.endDate?.trim() ?? "",
+            };
+        })
+        .filter((slot): slot is NormalizedAvailability => slot !== null);
+
+    return availability.length ? availability : null;
+};
 
 export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     try {
@@ -61,6 +88,17 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
             else if (k === "videos" && Array.isArray(v)) $set.videos = uniq(v);
             else if (k === "stories" && Array.isArray(v)) $set.stories = v;
             else if (k === "about" && typeof v === "string") $set.about = v.trim();
+            else if (k === "availability") {
+                const availability = normalizeAvailability(v);
+                if (!availability) {
+                    return NextResponse.json(
+                        { message: "Availability must contain at least one supported city" },
+                        { status: 400 }
+                    );
+                }
+                $set.availability = availability;
+                $set.city = availability[0].city;
+            }
             else $set[k] = v;
         }
 

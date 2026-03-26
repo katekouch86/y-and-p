@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { formatCityList, CITIES } from "@/constants/cities";
 import "./globals.css";
 import PageWrapper from "@/components/page-wrapper/PageWrapper";
 import ScrollToTop from "@/utils/ScrollToTop";
 
+const CITY_COPY = formatCityList(CITIES);
+
 export const metadata: Metadata = {
     title: "Y&P Agency — Luxury Companionship in Italy",
     description:
-        "Exclusive encounters with elegant Slavic ladies in Milan and Rome. Luxury, confidentiality, and pleasure without compromise.",
+        `Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`,
     icons: {
         icon: [{ url: "/favicon.png", type: "image/png", sizes: "64x64" }],
     },
@@ -14,7 +17,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: "Y&P Agency — Luxury Companionship in Italy",
         description:
-            "Exclusive encounters with elegant Slavic ladies in Milan and Rome. Luxury, confidentiality, and pleasure without compromise.",
+            `Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`,
         url: "https://yandp.agency/",
         siteName: "Y&P Agency",
         images: [
@@ -39,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* --- Open Graph для Telegram, Facebook, LinkedIn --- */}
             <meta property="og:title" content="Y&P Agency — Luxury Companionship in Italy" />
-            <meta property="og:description" content="Exclusive encounters with elegant Slavic ladies in Milan and Rome. Luxury, confidentiality, and pleasure without compromise." />
+            <meta property="og:description" content={`Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`} />
             <meta property="og:type" content="website" />
             <meta property="og:url" content="https://www.youngandpretty.agency/" />
             <meta property="og:site_name" content="Y&P Agency" />
@@ -54,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* --- Twitter / WhatsApp fallback --- */}
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content="Y&P Agency — Luxury Companionship in Italy" />
-            <meta name="twitter:description" content="Exclusive encounters with elegant Slavic ladies in Milan and Rome. Luxury, confidentiality, and pleasure without compromise." />
+            <meta name="twitter:description" content={`Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`} />
             <meta name="twitter:image" content="https://www.youngandpretty.agency/images/banner-image.png" />
 
             {/* --- Favicon --- */}
@@ -69,4 +72,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </html>
     );
 }
-//test

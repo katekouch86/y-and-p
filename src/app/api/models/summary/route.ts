@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { CITY_TO_SLUG, CITIES } from "@/constants/cities";
+import type { City } from "@/constants/cities";
 import { dbConnect } from "@/lib/mongoose";
 import mongoose from "mongoose";
 
@@ -37,19 +39,23 @@ export async function GET() {
 
         const availableNow = availableNowAgg?.[0]?.count ?? 0;
 
-        const milanCount = await db.collection("models").countDocuments({
-            "availability.city": { $regex: /^milan/i }
-        });
+        const cityCountsEntries = await Promise.all(
+            CITIES.map(async (city) => {
+                const slug = CITY_TO_SLUG[city];
+                const count = await db.collection("models").countDocuments({
+                    "availability.city": { $regex: new RegExp(`^${slug}`, "i") }
+                });
 
-        const romeCount = await db.collection("models").countDocuments({
-            "availability.city": { $regex: /^rome/i }
-        });
+                return [city, count] as const;
+            })
+        );
+
+        const cityCounts = Object.fromEntries(cityCountsEntries) as Record<City, number>;
 
         return NextResponse.json({
             totalModels,
             availableNow,
-            milanCount,
-            romeCount
+            cityCounts,
         });
 
     } catch (e: unknown) {

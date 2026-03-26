@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { getCityLabel } from "@/constants/cities";
 import type { ModelValues, Mode } from "@/types/model";
 
 const BASELINE: ModelValues = {
@@ -18,6 +19,14 @@ const BASELINE: ModelValues = {
     silicone: false,
     videoUrl: "",
 };
+
+const normalizeAvailability = (availability?: ModelValues["availability"]) =>
+    availability?.length
+        ? availability.map((slot) => ({
+            ...slot,
+            city: getCityLabel(slot.city) || "",
+        }))
+        : BASELINE.availability;
 
 export function useModelInit(
     open: boolean,
@@ -43,9 +52,7 @@ export function useModelInit(
                     name: initialValues?.name ?? "",
                     languages: initialValues?.languages ?? [],
                     gallery: initialValues?.gallery ?? [],
-                    availability: initialValues?.availability?.length
-                        ? [{ ...initialValues.availability[0] }]
-                        : BASELINE.availability,
+                    availability: normalizeAvailability(initialValues?.availability),
                     pricing: {
                         incall: initialValues?.pricing?.incall ?? [],
                         outcall: initialValues?.pricing?.outcall ?? [],
@@ -69,7 +76,7 @@ export function useModelInit(
                         ...full,
                         languages: full.languages ?? [],
                         gallery: full.gallery ?? [],
-                        availability: full.availability?.length ? [{ ...full.availability[0] }] : BASELINE.availability,
+                        availability: normalizeAvailability(full.availability),
                         pricing: { incall: full.pricing?.incall ?? [], outcall: full.pricing?.outcall ?? [] },
                     };
                     originalRef.current = normalized;
@@ -91,7 +98,7 @@ export function useModelInit(
                 ...initialValues,
                 languages: initialValues?.languages ?? [],
                 gallery: initialValues?.gallery ?? [],
-                availability: initialValues?.availability?.length ? [{ ...initialValues.availability[0] }] : BASELINE.availability,
+                availability: normalizeAvailability(initialValues?.availability),
                 pricing: {
                     incall: initialValues?.pricing?.incall ?? [],
                     outcall: initialValues?.pricing?.outcall ?? [],

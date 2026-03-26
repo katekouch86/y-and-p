@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { CITIES, CITY_TO_SLUG, formatCityList } from "@/constants/cities";
 import "./CompanyInfoBar.scss";
 import BannerImage from "../../../public/images/banner-image.png";
 
@@ -25,15 +26,22 @@ export default function CompanyInfoBar() {
                     </p>
                     <p className="company-info__text">
                         Our mission is discreet, tailored service — connecting clients with women selected for beauty,
-                        charm, and professionalism. Whether in Milan or Rome, you’ll find the perfect companion for any
+                        charm, and professionalism. Whether in {formatCityList(CITIES)}, you’ll find the perfect companion for any
                         occasion.
                     </p>
                 </div>
             </div>
             <div className="company-info__middle">
                 <nav className="company-info__actions" aria-label="Service cities">
-                    <Link href="/city/milan" className="company-info__btn">Milan</Link>
-                    <Link href="/city/rome" className="company-info__btn company-info__btn--ghost">Rome</Link>
+                    {CITIES.map((city, index) => (
+                        <Link
+                            key={city}
+                            href={`/city/${CITY_TO_SLUG[city]}`}
+                            className={`company-info__btn${index % 2 === 1 ? " company-info__btn--ghost" : ""}`}
+                        >
+                            {city}
+                        </Link>
+                    ))}
                 </nav>
             </div>
 

@@ -1,5 +1,7 @@
+import type { City } from "@/constants/cities";
+
 export type AvailabilityRange = {
-    city: string;
+    city: City;
     startDate: string;
     endDate: string;
 };

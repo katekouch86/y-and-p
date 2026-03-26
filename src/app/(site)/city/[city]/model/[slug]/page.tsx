@@ -1,4 +1,5 @@
 import {notFound} from "next/navigation";
+import { getCityLabel } from "@/constants/cities";
 import ModelHero from "@/components/model/model-hero/ModelHero";
 import ModelSlider from "@/components/model/model-slider/ModelSlider";
 import ModelPricing from "@/components/model/model-pricing/ModelPricing";
@@ -36,7 +37,7 @@ export default async function ModelPage({
         return notFound();
     }
 
-    const currentCity = requestedCity;
+    const currentCity = getCityLabel(city) || undefined;
 
     const gallery = [model.photo, ...(model.gallery ?? [])].filter(Boolean) as string[];
     const videoUrl = model.videos?.[0] || "";

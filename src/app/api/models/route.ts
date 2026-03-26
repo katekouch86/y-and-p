@@ -1,4 +1,6 @@
+import type { City } from "@/constants/cities";
 import { NextResponse } from "next/server";
+import { getCityLabel } from "@/constants/cities";
 import { dbConnect } from "@/lib/mongoose";
 import Model from "@/db/Model";
 import { revalidateTag } from "next/cache";
@@ -13,10 +15,26 @@ export async function POST(req: Request) {
 
         const data = await req.json();
 
-        const mainCity = data.availability?.[0]?.city?.trim();
+        const availability: Array<{ city: City; startDate: string; endDate: string }> = Array.isArray(data.availability)
+            ? data.availability
+                  .map((slot: { city?: string; startDate?: string; endDate?: string }) => {
+                      const city = getCityLabel(slot.city);
+                      if (!city) return null;
+
+                      return {
+                          ...slot,
+                          city,
+                          startDate: slot.startDate?.trim() ?? "",
+                          endDate: slot.endDate?.trim() ?? "",
+                      };
+                  })
+                  .filter((slot): slot is { city: City; startDate: string; endDate: string } => slot !== null)
+            : [];
+
+        const mainCity = availability[0]?.city;
         if (!mainCity) {
             return NextResponse.json(
-                { message: "City is required (availability[0].city missing)" },
+                { message: "City is required and must be one of: Rome, Milan, Florence" },
                 { status: 400 }
             );
         }
@@ -46,6 +64,7 @@ export async function POST(req: Request) {
         const model = await Model.create({
             ...data,
             city: mainCity,
+            availability,
             about,
             languages,
             gallery,

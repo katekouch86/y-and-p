@@ -1,5 +1,6 @@
 "use client";
-import { Grid, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { CITIES, getCityLabel } from "@/constants/cities";
 import type { Availability } from "@/types/model";
 
 type Props = {
@@ -17,7 +18,18 @@ export default function AvailabilityFields({ availability, setAvailability, requ
             </Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} sm={4}>
-                    <TextField label="City" fullWidth value={a.city} onChange={(e)=>setAvailability({ city: e.target.value })}/>
+                    <TextField
+                        select
+                        label="City"
+                        fullWidth
+                        value={a.city}
+                        onChange={(e)=>setAvailability({ city: getCityLabel(e.target.value) || "" })}
+                    >
+                        <MenuItem value="" disabled>Select…</MenuItem>
+                        {CITIES.map((city) => (
+                            <MenuItem key={city} value={city}>{city}</MenuItem>
+                        ))}
+                    </TextField>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                     <TextField label="Start date" type="date" fullWidth value={a.startDate}
