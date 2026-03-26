@@ -99,6 +99,20 @@
     display: flex;
     gap: 120px;
 
+    @media (max-width: 900px) {
+      gap: 24px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 480px) {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
   }
 
   &__btn {
@@ -159,6 +173,15 @@
     @media(max-width: 900px) {
       font-size: 16px;
       padding: 15px 30px;
+    }
+
+    @media (max-width: 480px) {
+      width: 100%;
+      min-width: 0;
+      padding: 12px 10px;
+      border-radius: 16px;
+      font-size: 14px;
+      text-align: center;
     }
   }
 
