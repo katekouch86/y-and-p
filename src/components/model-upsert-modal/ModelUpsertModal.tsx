@@ -14,6 +14,7 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MovieCreationOutlinedIcon from "@mui/icons-material/MovieCreationOutlined";
 import NextImage from "next/image";
+import { uploadFiles } from "@/utils/upload";
 import type { Availability as ModelAvailability } from "@/types/model";
 
 type Availability = ModelAvailability;
@@ -102,21 +103,6 @@ const toSlug = (s: string) =>
     s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 
 const filePreview = (f: File | null) => (f ? URL.createObjectURL(f) : "");
-
-type UploadApiFile = { url: string };
-type UploadApiResponse = { files?: UploadApiFile[]; message?: string };
-
-async function uploadFiles(files: File[], destFolder: string) {
-    if (!files.length) return [] as string[];
-    const form = new FormData();
-    files.forEach((f) => form.append("files", f));
-    form.append("dest", destFolder);
-
-    const res = await fetch("/api/upload", {method: "POST", body: form});
-    const data = (await res.json()) as UploadApiResponse;
-    if (!res.ok) throw new Error(data?.message || "Upload failed");
-    return (data?.files ?? []).map((x) => x.url);
-}
 
 type BoolKey = Extract<
     keyof ModelValues,
@@ -410,123 +396,112 @@ export default function ModelUpsertModal({
         e.preventDefault();
         if (!values) return;
 
-        const slug = (mode === "create" ? values.slug : context?.slug) || "tmp";
-        const baseDest = `models/${slug}`;
+        setSaving(true);
+        setError(null);
 
-        let uploadedCoverUrl: string | undefined;
-        if (coverFile) {
-            const [u] = await uploadFiles([coverFile], `${baseDest}/cover`);
-            uploadedCoverUrl = u;
-        }
+        try {
+            const slug = (mode === "create" ? values.slug : context?.slug) || "tmp";
+            const baseDest = `models/${slug}`;
 
-        let uploadedGalleryUrls: string[] = [];
-        if (galleryNewFiles.length) {
-            uploadedGalleryUrls = await uploadFiles(galleryNewFiles, `${baseDest}/images`);
-        }
-
-        let uploadedVideoUrls: string[] = [];
-        if (videosNewFiles.length) {
-            uploadedVideoUrls = await uploadFiles(videosNewFiles, `${baseDest}/videos`);
-        }
-
-        // === STORIES upload ===
-        let uploadedStories: { url: string; type: "image" | "video" }[] = [];
-        if (values?.stories?.length) {
-            const localStories = values.stories.filter(s => s.url.startsWith("blob:"));
-            if (localStories.length) {
-                const imgFiles = localStories.filter(s => s.type === "image" && s.file).map(s => s.file!);
-                const vidFiles = localStories.filter(s => s.type === "video" && s.file).map(s => s.file!);
-
-                const uploadedImgs = await uploadFiles(imgFiles, `${baseDest}/stories/images`);
-                const uploadedVids = await uploadFiles(vidFiles, `${baseDest}/stories/videos`);
-
-
-                uploadedStories = [
-                    ...uploadedImgs.map(url => ({ url, type: "image" as const })),
-                    ...uploadedVids.map(url => ({ url, type: "video" as const })),
-                ];
+            let uploadedCoverUrl: string | undefined;
+            if (coverFile) {
+                const [u] = await uploadFiles([coverFile], `${baseDest}/cover`);
+                uploadedCoverUrl = u;
             }
-        }
 
-        const finalStories = [
-            ...(values.stories?.filter(s => !s.url.startsWith("blob:")) ?? []),
-            ...uploadedStories,
-        ];
+            let uploadedGalleryUrls: string[] = [];
+            if (galleryNewFiles.length) {
+                uploadedGalleryUrls = await uploadFiles(galleryNewFiles, `${baseDest}/images`);
+            }
 
-        // === COMMON FINAL VALUES ===
-        const finalPhoto = uploadedCoverUrl ?? values.photo;
-        const finalGallery = [...(values.gallery ?? []), ...uploadedGalleryUrls];
-        const finalVideos = [...(values.videos ?? []), ...uploadedVideoUrls];
+            let uploadedVideoUrls: string[] = [];
+            if (videosNewFiles.length) {
+                uploadedVideoUrls = await uploadFiles(videosNewFiles, `${baseDest}/videos`);
+            }
 
-        if (mode === "create") {
-            const payload = {
-                slug: values.slug,
-                name: values.name,
-                photo: finalPhoto,
-                gallery: finalGallery,
-                videos: finalVideos,
-                about: values.about?.trim() || undefined,
+            let uploadedStories: { url: string; type: "image" | "video" }[] = [];
+            if (values?.stories?.length) {
+                const localStories = values.stories.filter(s => s.url.startsWith("blob:"));
+                if (localStories.length) {
+                    const imgFiles = localStories.filter(s => s.type === "image" && s.file).map(s => s.file!);
+                    const vidFiles = localStories.filter(s => s.type === "video" && s.file).map(s => s.file!);
 
-                age: values.age,
-                nationality: values.nationality?.trim() || undefined,
-                languages: values.languages ?? [],
-                eyeColor: values.eyeColor,
-                hairColor: values.hairColor,
-                dressSize: values.dressSize,
-                shoeSize: values.shoeSize,
-                heightCm: values.heightCm,
-                weightKg: values.weightKg,
-                cupSize: values.cupSize,
-                smoking: values.smoking ?? false,
-                drinking: values.drinking ?? false,
-                snowParty: values.snowParty ?? false,
-                tattoo: values.tattoo ?? false,
-                piercing: values.piercing ?? false,
-                silicone: values.silicone ?? false,
+                    const uploadedImgs = await uploadFiles(imgFiles, `${baseDest}/stories/images`);
+                    const uploadedVids = await uploadFiles(vidFiles, `${baseDest}/stories/videos`);
 
-                availability: values.availability,
-                pricing: values.pricing,
-                stories: finalStories,
-            };
+                    uploadedStories = [
+                        ...uploadedImgs.map(url => ({ url, type: "image" as const })),
+                        ...uploadedVids.map(url => ({ url, type: "video" as const })),
+                    ];
+                }
+            }
 
-            setSaving(true);
-            setError(null);
-            try {
+            const finalStories = [
+                ...(values.stories?.filter(s => !s.url.startsWith("blob:")) ?? []),
+                ...uploadedStories,
+            ];
+
+            const finalPhoto = uploadedCoverUrl ?? values.photo;
+            const finalGallery = [...(values.gallery ?? []), ...uploadedGalleryUrls];
+            const finalVideos = [...(values.videos ?? []), ...uploadedVideoUrls];
+
+            if (mode === "create") {
+                const payload = {
+                    slug: values.slug,
+                    name: values.name,
+                    photo: finalPhoto,
+                    gallery: finalGallery,
+                    videos: finalVideos,
+                    about: values.about?.trim() || undefined,
+
+                    age: values.age,
+                    nationality: values.nationality?.trim() || undefined,
+                    languages: values.languages ?? [],
+                    eyeColor: values.eyeColor,
+                    hairColor: values.hairColor,
+                    dressSize: values.dressSize,
+                    shoeSize: values.shoeSize,
+                    heightCm: values.heightCm,
+                    weightKg: values.weightKg,
+                    cupSize: values.cupSize,
+                    smoking: values.smoking ?? false,
+                    drinking: values.drinking ?? false,
+                    snowParty: values.snowParty ?? false,
+                    tattoo: values.tattoo ?? false,
+                    piercing: values.piercing ?? false,
+                    silicone: values.silicone ?? false,
+
+                    availability: values.availability,
+                    pricing: values.pricing,
+                    stories: finalStories,
+                };
+
                 const saved = await onSubmit(payload, "create");
                 onSaved?.(saved);
                 onClose();
-            } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : "Failed to create");
-            } finally {
-                setSaving(false);
+                return;
             }
-            return;
-        }
 
-        // === EDIT mode ===
-        setValues(v => (v ? { ...v, photo: finalPhoto, gallery: finalGallery, videos: finalVideos } : v));
+            setValues(v => (v ? { ...v, photo: finalPhoto, gallery: finalGallery, videos: finalVideos } : v));
 
-        const payload: Record<string, unknown> = {
-            ...diffPayload,
-            ...(uploadedCoverUrl ? { photo: finalPhoto } : {}),
-            ...(uploadedGalleryUrls.length ? { gallery: finalGallery } : {}),
-            ...(uploadedVideoUrls.length ? { videos: finalVideos } : {}),
-            ...(uploadedStories.length || diffPayload.stories ? { stories: finalStories } : {}),
-        };
+            const payload: Record<string, unknown> = {
+                ...diffPayload,
+                ...(uploadedCoverUrl ? { photo: finalPhoto } : {}),
+                ...(uploadedGalleryUrls.length ? { gallery: finalGallery } : {}),
+                ...(uploadedVideoUrls.length ? { videos: finalVideos } : {}),
+                ...(uploadedStories.length || diffPayload.stories ? { stories: finalStories } : {}),
+            };
 
-        if (!Object.keys(payload).length) {
-            onClose();
-            return;
-        }
+            if (!Object.keys(payload).length) {
+                onClose();
+                return;
+            }
 
-        setSaving(true);
-        setError(null);
-        try {
             const saved = await onSubmit(payload, "edit");
             onSaved?.(saved);
             onClose();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Failed to update");
+            setError(err instanceof Error ? err.message : mode === "create" ? "Failed to create" : "Failed to update");
         } finally {
             setSaving(false);
         }
