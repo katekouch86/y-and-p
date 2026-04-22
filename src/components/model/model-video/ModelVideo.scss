@@ -49,6 +49,20 @@
     justify-content: center;
   }
 
+  &__slider {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__swiper {
+    width: 100%;
+  }
+
+  &__slide {
+    height: auto;
+  }
+
   &__video {
     display: block;
     width: 100%;
@@ -68,6 +82,85 @@
   &__info {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  &__controls {
+    position: relative;
+    min-height: 44px;
+  }
+
+  &__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fff 60%, #e7e7e7 100%);
+    color: #222;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .12);
+    cursor: pointer;
+    flex: 0 0 auto;
+    transition: background .25s, box-shadow .25s, color .25s, transform .18s;
+
+    &--prev {
+      left: 0;
+      transform: translateY(-50%);
+    }
+
+    &--next {
+      right: 0;
+      transform: translateY(-50%);
+    }
+
+    &:hover {
+      background: var(--secondary-background-color);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, .10);
+      color: var(--light-color);
+      transform: scale(1.04);
+    }
+
+    svg {
+      font-size: 26px;
+    }
+  }
+
+  &__dots {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: max-content;
+    max-width: calc(100% - 116px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .swiper-pagination-bullet {
+      width: 10px;
+      height: 10px;
+      margin: 0 !important;
+      border-radius: 50%;
+      background: #bbb;
+      border: 2px solid #eee;
+      opacity: .7;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    }
+
+    .swiper-pagination-bullet-active {
+      background: #222;
+      border-color: #222;
+      opacity: 1;
+      transform: scale(1.15);
+    }
   }
 
   &__infocard {
@@ -153,6 +246,9 @@
       max-width: 100%;
       min-width: 0;
     }
+    &__controls {
+      min-height: 44px;
+    }
   }
 
   @media (max-width: 480px) {
@@ -166,6 +262,26 @@
     }
     &__btn {
       width: 100%;
+    }
+    &__nav {
+      width: 40px;
+      height: 40px;
+
+      svg {
+        font-size: 24px;
+      }
+    }
+    &__controls {
+      min-height: 40px;
+    }
+    &__dots {
+      max-width: calc(100% - 96px);
+      gap: 6px;
+
+      .swiper-pagination-bullet {
+        width: 8px;
+        height: 8px;
+      }
     }
   }
 }

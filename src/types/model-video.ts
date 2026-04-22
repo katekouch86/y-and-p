@@ -1,6 +1,6 @@
 export type ModelVideoProps = {
     name: string;
     city?: string;
-    videoUrl: string;
+    videos?: string[];
     about?: string;
 };

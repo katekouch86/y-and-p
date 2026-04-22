@@ -61,7 +61,12 @@ export default function ModelSlider({ images, name, startIndex = 0 }: ModelSlide
                     slidesPerView="auto"
                     spaceBetween={15}
                     keyboard={{ enabled: true }}
-                    pagination={{ el: ".model-slider__dots", clickable: true }}
+                    pagination={{
+                        el: ".model-slider__dots",
+                        clickable: true,
+                        dynamicBullets: true,
+                        dynamicMainBullets: 5,
+                    }}
                     onBeforeInit={(swiper) => {
                         swiperRef.current = swiper as SwiperType;
                     }}

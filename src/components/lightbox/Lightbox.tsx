@@ -12,6 +12,7 @@ import { normalizeSrc, shouldBypassImageOptimization } from "@/utils/image";
 export default function Lightbox({images, name, initialIndex = 0, onClose}: LightboxProps) {
     const safeStart = Math.min(Math.max(initialIndex, 0), Math.max(images.length - 1, 0));
     const [active, setActive] = useState(safeStart);
+    const maxVisibleDots = 9;
 
     const prev = useCallback(() => setActive(i => (i - 1 + images.length) % images.length), [images.length]);
     const next = useCallback(() => setActive(i => (i + 1) % images.length), [images.length]);
@@ -35,6 +36,17 @@ export default function Lightbox({images, name, initialIndex = 0, onClose}: Ligh
 
     const activeSrc = normalizeSrc(images[active]);
     const unoptimized = shouldBypassImageOptimization(activeSrc);
+    const hasHiddenStart = images.length > maxVisibleDots && active > Math.floor(maxVisibleDots / 2);
+    const hasHiddenEnd = images.length > maxVisibleDots && active < images.length - Math.ceil(maxVisibleDots / 2);
+    const windowStart = images.length <= maxVisibleDots
+        ? 0
+        : Math.min(
+            Math.max(active - Math.floor(maxVisibleDots / 2), 0),
+            images.length - maxVisibleDots,
+        );
+    const visibleIndices = images
+        .map((_, index) => index)
+        .slice(windowStart, windowStart + Math.min(maxVisibleDots, images.length));
 
     return (
         <div className="lightbox" role="dialog" aria-modal="true" aria-label={`${name} photo viewer`} onClick={onClose}>
@@ -72,7 +84,8 @@ export default function Lightbox({images, name, initialIndex = 0, onClose}: Ligh
             </button>
 
             <div className="lightbox__dots" aria-label="Select photo">
-                {images.map((_, i) => (
+                {hasHiddenStart && <span className="lightbox__dots-ellipsis" aria-hidden="true">...</span>}
+                {visibleIndices.map((i) => (
                     <button
                         key={i}
                         className={`lightbox__dot${i === active ? " lightbox__dot--active" : ""}`}
@@ -84,6 +97,7 @@ export default function Lightbox({images, name, initialIndex = 0, onClose}: Ligh
                         }}
                     />
                 ))}
+                {hasHiddenEnd && <span className="lightbox__dots-ellipsis" aria-hidden="true">...</span>}
             </div>
         </div>
     );

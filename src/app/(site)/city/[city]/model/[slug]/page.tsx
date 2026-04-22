@@ -40,7 +40,7 @@ export default async function ModelPage({
     const currentCity = getCityLabel(city) || undefined;
 
     const gallery = [model.photo, ...(model.gallery ?? [])].filter(Boolean) as string[];
-    const videoUrl = model.videos?.[0] || "";
+    const videos = (model.videos ?? []).filter(Boolean);
 
     return (
         <main>
@@ -49,7 +49,7 @@ export default async function ModelPage({
             <ModelAboutSection
                 name={model.name}
                 city={currentCity}
-                videoUrl={videoUrl}
+                videos={videos}
                 about={model?.about}
             />
 
