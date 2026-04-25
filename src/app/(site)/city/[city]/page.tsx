@@ -7,6 +7,7 @@ import {
     getStoryModelsByCity,
 } from "@/lib/model-data";
 import { formatCityName, slugifyCity } from "@/utils/city";
+import { getSiteUrl } from "@/utils/site";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ export async function generateMetadata({
     const cityLabel = seoCity?.name || formatCityName(city) || city;
     const citySlug = seoCity?.slug || slugifyCity(city) || city;
     const models = await getCatalogModelsByCity(city);
+    const canonical = getSiteUrl(`/city/${citySlug}`);
+    const ogImage = getSiteUrl("/images/banner-image.png");
     const title = `${cityLabel} Escort Models`;
     const description =
         models.length > 0
@@ -30,15 +33,19 @@ export async function generateMetadata({
         title,
         description,
         alternates: {
-            canonical: `/city/${citySlug}`,
+            canonical,
         },
         openGraph: {
             title: `${title} | Y&P Agency`,
             description,
-            url: `/city/${citySlug}`,
+            url: canonical,
             images: [
                 {
-                    url: "/images/banner-image.png",
+                    url: ogImage,
+                    secureUrl: ogImage,
+                    type: "image/png",
+                    width: 1200,
+                    height: 630,
                     alt: `Y&P Agency in ${cityLabel}`,
                 },
             ],
@@ -47,7 +54,7 @@ export async function generateMetadata({
             card: "summary_large_image",
             title: `${title} | Y&P Agency`,
             description,
-            images: ["/images/banner-image.png"],
+            images: [ogImage],
         },
     };
 }
