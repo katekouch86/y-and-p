@@ -10,7 +10,6 @@ import React, {
     useState,
     memo,
 } from "react";
-import { canonCity } from "@/utils/availability";
 import "./StoryViewer.scss";
 
 type Story = { _id: string; url: string; type: "image" | "video" };
@@ -33,7 +32,6 @@ type StoryViewerProps = {
     models: WithMedia[];
     startModelIndex: number;
     onClose: () => void;
-    city?: string;
 };
 
 type PreparedItem = {
@@ -67,7 +65,6 @@ export default function StoryViewer({
                                         models,
                                         startModelIndex,
                                         onClose,
-                                        city,
                                     }: StoryViewerProps) {
     const prepared: PreparedItem[] = useMemo(() => {
         return models
@@ -175,8 +172,6 @@ export default function StoryViewer({
 
     const m = current.model;
     const slide = current.slides[si];
-    const cityForLink = canonCity(city ?? m.city ?? "");
-
     return (
         <div className="story" role="dialog" aria-modal="true" onClick={onClose}>
             <div className="story__wrap" onClick={(e) => e.stopPropagation()}>
@@ -246,7 +241,7 @@ export default function StoryViewer({
                     <div className="story__name">{m.name}</div>
                     <Link
                         className="story__link"
-                        href={`/city/${cityForLink}/model/${m.slug}`}
+                        href={`/model/${m.slug}`}
                         onClick={(e) => e.stopPropagation()}
                     >
                         Open profile

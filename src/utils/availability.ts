@@ -1,4 +1,4 @@
-import { getCitySlug } from "@/constants/cities";
+import { slugifyCity } from "@/utils/city";
 
 export type AvailabilityItem =
     | { city: string; startDate: string; endDate: string }
@@ -7,7 +7,7 @@ export type AvailabilityItem =
 export function canonCity(raw?: string): string {
     if (!raw) return "";
 
-    return getCitySlug(raw) || raw.trim().toLowerCase();
+    return slugifyCity(raw);
 }
 
 

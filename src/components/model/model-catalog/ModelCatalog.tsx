@@ -72,7 +72,7 @@ export default function ModelCatalog({
                         key={it.slug || it._id || idx}
                         src={it.photo}
                         name={it.name}
-                        href={`/city/${canonCity(city)}/model/${it.slug}`}
+                        href={`/model/${it.slug}`}
                         priority={idx < 2}
                     />
                 ))}
@@ -90,7 +90,7 @@ export default function ModelCatalog({
                                 key={it.slug || it._id || idx}
                                 src={it.photo}
                                 name={it.name}
-                                href={`/city/${canonCity(city)}/model/${it.slug}`}
+                                href={`/model/${it.slug}`}
                             />
                         ))}
                     </section>

@@ -78,7 +78,6 @@ export default function Stories({
                     }))}
                     startModelIndex={openIndex}
                     onClose={() => setOpenIndex(null)}
-                    city={city}
                 />
             )}
         </>

@@ -1,8 +1,8 @@
 import Model from "@/db/Model";
-import { getCityLabel } from "@/constants/cities";
 import { dbConnect } from "@/lib/mongoose";
 import type { Model as ModelRecord, Story } from "@/models/model.model";
 import { canonCity, isAvailableNow } from "@/utils/availability";
+import { formatCityName, slugifyCity } from "@/utils/city";
 import type { ModelCatalogItemProps } from "@/types/model-catalog-item";
 import type { ModelCardList } from "@/types/model-card-list";
 
@@ -16,7 +16,7 @@ function normalizeAvailability<T extends { city: string; startDate: string; endD
     const normalized: T[] = [];
 
     for (const slot of availability ?? []) {
-        const city = getCityLabel(slot.city);
+        const city = formatCityName(slot.city);
         if (!city) continue;
 
         normalized.push({ ...slot, city } as T);
@@ -29,7 +29,7 @@ function normalizeModelCities<T extends { city?: string | null; availability?: {
     model: T
 ): T {
     const availability = normalizeAvailability(model.availability);
-    const mainCity = getCityLabel(model.city ?? "") || availability[0]?.city;
+    const mainCity = formatCityName(model.city ?? "") || availability[0]?.city;
 
     return {
         ...model,
@@ -67,6 +67,57 @@ async function queryAdminModelList(): Promise<ModelCardList[]> {
 
 export async function getPublicModelList(): Promise<PublicModelListItem[]> {
     return (await queryPublicModelList()).map((model) => normalizeModelCities(model));
+}
+
+export type SeoCityEntry = {
+    slug: string;
+    name: string;
+};
+
+function collectCityEntries(models: Array<{ city?: string; availability?: { city: string }[] }>): SeoCityEntry[] {
+    const entries = new Map<string, SeoCityEntry>();
+
+    for (const model of models) {
+        const rawCities = [model.city, ...(model.availability ?? []).map((slot) => slot.city)];
+
+        for (const rawCity of rawCities) {
+            const slug = slugifyCity(rawCity);
+            const name = formatCityName(rawCity);
+
+            if (!slug || !name || entries.has(slug)) continue;
+
+            entries.set(slug, { slug, name });
+        }
+    }
+
+    return Array.from(entries.values()).sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export async function getSeoCities(): Promise<SeoCityEntry[]> {
+    const models = await getPublicModelList();
+
+    return collectCityEntries(models);
+}
+
+export async function getSeoCityBySlug(citySlug: string): Promise<SeoCityEntry | null> {
+    const normalizedSlug = slugifyCity(citySlug);
+
+    if (!normalizedSlug) return null;
+
+    const cities = await getSeoCities();
+
+    return cities.find((city) => city.slug === normalizedSlug) ?? null;
+}
+
+export async function getSeoModels(): Promise<Array<{ slug: string; updatedAt?: string }>> {
+    const models = await getPublicModelList();
+
+    return models
+        .filter((model) => Boolean(model.slug))
+        .map((model) => ({
+            slug: model.slug,
+            updatedAt: model.updatedAt,
+        }));
 }
 
 export async function getCatalogModelsByCity(city: string): Promise<ModelCatalogItemProps[]> {

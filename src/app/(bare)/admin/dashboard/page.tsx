@@ -3,6 +3,8 @@ import {redirect} from "next/navigation";
 import Dashboard from "@/components/dashboard/Dashboard";
 import ModelList from "@/components/model/model-list/ModelList";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
     const cookieStore = await cookies();
     const adminCookie = cookieStore.get("admin")?.value;

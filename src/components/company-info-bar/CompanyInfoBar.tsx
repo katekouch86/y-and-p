@@ -12,12 +12,12 @@ export default function CompanyInfoBar() {
             <div className="company-info__top">
                 <header className="company-info__head" aria-label="Company info header">
 
-                    <h1 id="company-info__title" className="company-info__title">
+                    <h2 id="company-info__title" className="company-info__title">
                         Escort in Italy
-                    </h1>
-                    <h2 className="company-info__lead">
-                        The reference point for classy experiences and unforgettable moments in Italy.
                     </h2>
+                    <p className="company-info__lead">
+                        The reference point for classy experiences and unforgettable moments in Italy.
+                    </p>
                 </header>
                 <div className="company-info__body">
                     <p className="company-info__text">
@@ -47,7 +47,7 @@ export default function CompanyInfoBar() {
 
             <div className="company-info__bottom">
                 <div className="company-info__body">
-                    <h2 className="company-info__lead company-info__lead--bottom">Exclusive Telegram Channel And Lotalty Program</h2>
+                    <h3 className="company-info__lead company-info__lead--bottom">Exclusive Telegram Channel And Lotalty Program</h3>
                     <p className="company-info__text company-info__text--bottom">
                         We have created an exclusive Telegram channel, designed for those who wish to stay constantly
                         updated with the utmost discretion and receive information in advance. Inside, you will find all

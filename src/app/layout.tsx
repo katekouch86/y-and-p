@@ -3,23 +3,39 @@ import { formatCityList, CITIES } from "@/constants/cities";
 import "./globals.css";
 import PageWrapper from "@/components/page-wrapper/PageWrapper";
 import ScrollToTop from "@/utils/ScrollToTop";
+import { SITE_NAME, SITE_URL } from "@/utils/site";
 
 const CITY_COPY = formatCityList(CITIES);
 
 export const metadata: Metadata = {
-    title: "Y&P Agency — Luxury Companionship in Italy",
+    metadataBase: new URL(SITE_URL),
+    title: {
+        default: "Y&P Agency — Luxury Companionship in Italy",
+        template: `%s | ${SITE_NAME}`,
+    },
     description:
         `Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`,
     icons: {
         icon: [{ url: "/favicon.png", type: "image/png", sizes: "64x64" }],
     },
-    robots: "index, follow",
+    applicationName: SITE_NAME,
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+        },
+    },
     openGraph: {
         title: "Y&P Agency — Luxury Companionship in Italy",
         description:
             `Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`,
-        url: "https://yandp.agency/",
-        siteName: "Y&P Agency",
+        url: "/",
+        siteName: SITE_NAME,
         images: [
             {
                 url: "/images/banner-image.png",
@@ -31,38 +47,19 @@ export const metadata: Metadata = {
         locale: "en_US",
         type: "website",
     },
-    alternates: { canonical: "https://yandp.agency/" },
+    twitter: {
+        card: "summary_large_image",
+        title: "Y&P Agency — Luxury Companionship in Italy",
+        description:
+            `Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`,
+        images: ["/images/banner-image.png"],
+    },
+    alternates: { canonical: "/" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
-        <head>
-            <meta name="robots" content="index, follow" />
-
-            {/* --- Open Graph для Telegram, Facebook, LinkedIn --- */}
-            <meta property="og:title" content="Y&P Agency — Luxury Companionship in Italy" />
-            <meta property="og:description" content={`Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`} />
-            <meta property="og:type" content="website" />
-            <meta property="og:url" content="https://www.youngandpretty.agency/" />
-            <meta property="og:site_name" content="Y&P Agency" />
-            <meta property="og:locale" content="en_US" />
-            <meta property="og:image" content="https://www.youngandpretty.agency/images/banner-image.png" />
-            <meta property="og:image:secure_url" content="https://www.youngandpretty.agency/images/banner-image.png" />
-            <meta property="og:image:type" content="image/png" />
-            <meta property="og:image:width" content="1200" />
-            <meta property="og:image:height" content="630" />
-            <meta property="og:image:alt" content="Y&P Agency banner image" />
-
-            {/* --- Twitter / WhatsApp fallback --- */}
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" content="Y&P Agency — Luxury Companionship in Italy" />
-            <meta name="twitter:description" content={`Exclusive encounters with elegant Slavic ladies in ${CITY_COPY}. Luxury, confidentiality, and pleasure without compromise.`} />
-            <meta name="twitter:image" content="https://www.youngandpretty.agency/images/banner-image.png" />
-
-            {/* --- Favicon --- */}
-            <link rel="icon" href="https://www.youngandpretty.agency/favicon.png" type="image/png" sizes="64x64" />
-        </head>
         <body>
         <PageWrapper>
             <ScrollToTop />
