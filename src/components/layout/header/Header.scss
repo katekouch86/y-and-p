@@ -36,6 +36,12 @@
     width: 100%;
   }
 
+  &__contact-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
   &__contact {
     font-size: 20px;
     font-weight: 500;

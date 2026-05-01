@@ -33,11 +33,11 @@ export default function CompanyInfoBar() {
             </div>
             <div className="company-info__middle">
                 <nav className="company-info__actions" aria-label="Service cities">
-                    {CITIES.map((city, index) => (
+                    {CITIES.map((city) => (
                         <Link
                             key={city}
                             href={`/city/${CITY_TO_SLUG[city]}`}
-                            className={`company-info__btn${index % 2 === 1 ? " company-info__btn--ghost" : ""}`}
+                            className="company-info__btn"
                         >
                             {city}
                         </Link>
