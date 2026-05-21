@@ -10,6 +10,32 @@ export function canonCity(raw?: string): string {
     return slugifyCity(raw);
 }
 
+function parseDate(str: string): Date {
+    if (str.includes(".")) {
+        const [d, m, y] = str.split(".");
+        return new Date(+y, +m - 1, +d);
+    }
+    return new Date(str);
+}
+
+export function isArrivingSoon(
+    availability?: AvailabilityItem[] | null,
+    cityFilter?: string
+): boolean {
+    if (!Array.isArray(availability) || availability.length === 0) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const cityCanon = canonCity(cityFilter);
+
+    return availability.some((a) => {
+        if (!a.city || !a.startDate) return false;
+        const aCity = canonCity(a.city);
+        if (cityCanon && aCity !== cityCanon) return false;
+        const start = parseDate(a.startDate);
+        return start > today;
+    });
+}
 
 export function isAvailableNow(
     availability?: AvailabilityItem[] | null,

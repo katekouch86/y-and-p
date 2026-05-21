@@ -4,11 +4,13 @@ import ModelProfilePage from "@/components/model/model-profile-page/ModelProfile
 import { getCatalogModelsByCity, getModelBySlug } from "@/lib/model-data";
 import { getSiteUrl, SITE_NAME } from "@/utils/site";
 import { getCitySlug } from "@/constants/cities";
+import { canonCity, isAvailableNow, isArrivingSoon } from "@/utils/availability";
 import type { Model } from "@/models/model.model";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
+type SearchParams = Promise<{ city?: string }>;
 
 type ProfileModel = Model & {
     about?: string;
@@ -29,6 +31,29 @@ function buildDescription(model: ProfileModel): string {
     }
 
     return `Discover ${model.name}'s profile${cityCopy} with availability, gallery, videos, and pricing.`;
+}
+
+/**
+ * Determines the city that is contextually relevant for this page visit.
+ *
+ * Priority:
+ *  1. ?city= query param — if the model actually has availability for that city
+ *  2. The city from the model's availability where today falls inside the date range
+ *  3. The model's primary city field
+ */
+function resolveContextCity(model: ProfileModel, cityParam?: string): string | null {
+    const availability = model.availability ?? [];
+
+    if (cityParam) {
+        const paramCanon = canonCity(cityParam);
+        const match = availability.find((slot) => canonCity(slot.city) === paramCanon);
+        if (match) return match.city;
+    }
+
+    const nowSlot = availability.find((slot) => isAvailableNow([slot]));
+    if (nowSlot) return nowSlot.city;
+
+    return model.city || null;
 }
 
 export async function generateMetadata({
@@ -87,28 +112,41 @@ export async function generateMetadata({
 
 export default async function Page({
     params,
+    searchParams,
 }: {
     params: Params;
+    searchParams: SearchParams;
 }) {
-    const { slug } = await params;
+    const [{ slug }, { city: cityParam }] = await Promise.all([params, searchParams]);
     const model = await loadModel(slug);
 
     if (!model) return notFound();
 
-    const relatedModels = model.city
-        ? (await getCatalogModelsByCity(model.city))
-              .filter((m) => m.slug !== slug)
-              .slice(0, 4)
-        : [];
+    const contextCity = resolveContextCity(model, cityParam);
 
-    const citySlug = model.city ? getCitySlug(model.city) : null;
+    let relatedAvailableNow: Awaited<ReturnType<typeof getCatalogModelsByCity>> = [];
+    let relatedArrivingSoon: Awaited<ReturnType<typeof getCatalogModelsByCity>> = [];
+
+    if (contextCity) {
+        const others = (await getCatalogModelsByCity(contextCity)).filter(
+            (m) => m.slug !== slug
+        );
+        relatedAvailableNow = others
+            .filter((m) => isAvailableNow(m.availability, contextCity))
+            .slice(0, 4);
+        relatedArrivingSoon = others
+            .filter((m) => !isAvailableNow(m.availability, contextCity) && isArrivingSoon(m.availability, contextCity))
+            .slice(0, 4);
+    }
+
+    const citySlug = contextCity ? getCitySlug(contextCity) : null;
     const breadcrumbSchema = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
             { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
             ...(citySlug
-                ? [{ "@type": "ListItem", position: 2, name: `${model.city} Escort Models`, item: getSiteUrl(`/city/${citySlug}`) }]
+                ? [{ "@type": "ListItem", position: 2, name: `${contextCity} Escort Models`, item: getSiteUrl(`/city/${citySlug}`) }]
                 : []),
             { "@type": "ListItem", position: citySlug ? 3 : 2, name: model.name, item: getSiteUrl(`/model/${model.slug}`) },
         ],
@@ -120,7 +158,12 @@ export default async function Page({
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
             />
-            <ModelProfilePage model={model} relatedModels={relatedModels} />
+            <ModelProfilePage
+                model={model}
+                contextCity={contextCity ?? undefined}
+                relatedAvailableNow={relatedAvailableNow}
+                relatedArrivingSoon={relatedArrivingSoon}
+            />
         </>
     );
 }

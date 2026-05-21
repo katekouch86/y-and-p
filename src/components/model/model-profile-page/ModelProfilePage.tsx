@@ -15,13 +15,19 @@ type ProfileModel = Model & {
 
 interface Props {
     model: ProfileModel;
-    relatedModels?: ModelCatalogItemProps[];
+    contextCity?: string;
+    relatedAvailableNow?: ModelCatalogItemProps[];
+    relatedArrivingSoon?: ModelCatalogItemProps[];
 }
 
-export default function ModelProfilePage({ model, relatedModels = [] }: Props) {
+export default function ModelProfilePage({
+    model,
+    contextCity,
+    relatedAvailableNow = [],
+    relatedArrivingSoon = [],
+}: Props) {
     const gallery = [model.photo, ...(model.gallery ?? [])].filter(Boolean) as string[];
     const videos = (model.videos ?? []).filter(Boolean);
-    const currentCity = model.city || undefined;
 
     return (
         <main>
@@ -29,7 +35,7 @@ export default function ModelProfilePage({ model, relatedModels = [] }: Props) {
 
             <ModelAboutSection
                 name={model.name}
-                city={currentCity}
+                city={contextCity}
                 videos={videos}
                 about={model.about}
             />
@@ -38,9 +44,13 @@ export default function ModelProfilePage({ model, relatedModels = [] }: Props) {
             <ModelPricing model={model} />
             <ModelAvailability model={model} />
 
-            {/*{currentCity && (
-                <ModelRelated city={currentCity} models={relatedModels} />
-            )}*/}
+            {contextCity && (
+                <ModelRelated
+                    city={contextCity}
+                    availableNow={relatedAvailableNow}
+                    arrivingSoon={relatedArrivingSoon}
+                />
+            )}
         </main>
     );
 }

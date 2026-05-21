@@ -1,7 +1,7 @@
 import "./ModelCatalog.scss";
 import ModelCard from "@/components/model/model-card/ModelCard";
 import { getCityLabel } from "@/constants/cities";
-import { isAvailableNow, canonCity } from "@/utils/availability";
+import { isAvailableNow, isArrivingSoon } from "@/utils/availability";
 import { ModelCatalogItemProps } from "@/types/model-catalog-item";
 
 export default function ModelCatalog({
@@ -11,42 +11,12 @@ export default function ModelCatalog({
     city: string;
     models: ModelCatalogItemProps[];
 }) {
-    // Universal date parser (supports DD.MM.YYYY + ISO)
-    const parseDate = (str: string) => {
-        if (str.includes(".")) {
-            const [d, m, y] = str.split(".");
-            return new Date(+y, +m - 1, +d);
-        }
-        return new Date(str);
-    };
-
-    // 🔥 NEW VERSION — no “7 days” limit
-    const isArrivingSoon = (
-        availability: ModelCatalogItemProps["availability"],
-        cityName: string
-    ): boolean => {
-        if (!availability?.length) return false;
-
-        const targetCity = canonCity(cityName);
-        const today = new Date();
-
-        return availability.some((slot) => {
-            if (!slot?.city || !slot.startDate) return false;
-            if (canonCity(slot.city) !== targetCity) return false;
-
-            const start = parseDate(slot.startDate);
-
-            return start > today; // 🔥 future date = arriving soon
-        });
-    };
-
-    // AVAILABLE NOW (today is between start & end)
     const cityLabel = getCityLabel(city) || city;
+
     const availableNow = models.filter((m) =>
         isAvailableNow(m.availability, city)
     );
 
-    // ARRIVING SOON (any future date)
     const arrivingSoon = models.filter(
         (m) =>
             !isAvailableNow(m.availability, city) &&
@@ -72,7 +42,7 @@ export default function ModelCatalog({
                         key={it.slug || it._id || idx}
                         src={it.photo}
                         name={it.name}
-                        href={`/model/${it.slug}`}
+                        href={`/model/${it.slug}?city=${encodeURIComponent(city)}`}
                         priority={idx < 2}
                     />
                 ))}
@@ -90,7 +60,7 @@ export default function ModelCatalog({
                                 key={it.slug || it._id || idx}
                                 src={it.photo}
                                 name={it.name}
-                                href={`/model/${it.slug}`}
+                                href={`/model/${it.slug}?city=${encodeURIComponent(city)}`}
                             />
                         ))}
                     </section>
