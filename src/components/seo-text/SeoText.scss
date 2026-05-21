@@ -1,0 +1,28 @@
+.seo-text {
+  background-color: var(--background);
+  padding: 40px 120px 48px;
+
+  @media (max-width: 1024px) {
+    padding: 32px 80px 40px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 28px 40px 36px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 24px 22px 32px;
+  }
+
+  &__inner {
+    max-width: 860px;
+    display: grid;
+    gap: 14px;
+  }
+
+  &__paragraph {
+    color: var(--secondary-text-color);
+    font-size: clamp(13px, 1.4vw, 15px);
+    line-height: 1.7;
+  }
+}
