@@ -38,9 +38,9 @@ export default function ModelProfilePage({ model, relatedModels = [] }: Props) {
             <ModelPricing model={model} />
             <ModelAvailability model={model} />
 
-            {currentCity && (
+            {/*{currentCity && (
                 <ModelRelated city={currentCity} models={relatedModels} />
-            )}
+            )}*/}
         </main>
     );
 }
