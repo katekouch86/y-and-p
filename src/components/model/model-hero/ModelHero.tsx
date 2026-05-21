@@ -12,6 +12,7 @@ export default function ModelHero({model}: ModelHeroProps) {
     const {
         name,
         photo,
+        city,
         age,
         nationality,
         languages,
@@ -62,7 +63,7 @@ export default function ModelHero({model}: ModelHeroProps) {
                 <div className="model-hero__photo">
                     <Image
                         src={cover}
-                        alt={name}
+                        alt={city ? `${name} — escort model in ${city}` : name}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 520px"
                         priority

@@ -56,7 +56,7 @@ export default function ModelCatalog({
     return (
         <div className="model-catalog">
 
-            <h1 className="model-catalog__title">Available Now</h1>
+            <h2 className="model-catalog__title">Available Now</h2>
 
             <section className="model-catalog__grid">
                 {availableNow.length === 0 && (
@@ -80,9 +80,9 @@ export default function ModelCatalog({
 
             {arrivingSoon.length > 0 && (
                 <>
-                    <h1 className="model-catalog__title" style={{ marginTop: "50px" }}>
+                    <h2 className="model-catalog__title" style={{ marginTop: "50px" }}>
                         Arriving Soon
-                    </h1>
+                    </h2>
 
                     <section className="model-catalog__grid">
                         {arrivingSoon.map((it, idx) => (

@@ -32,6 +32,14 @@ export async function generateMetadata({
     return {
         title,
         description,
+        keywords: [
+            `escort ${cityLabel}`,
+            `${cityLabel} escort models`,
+            `${cityLabel} escort agency`,
+            `escort in ${cityLabel}`,
+            "Y&P Agency",
+            "luxury escort Italy",
+        ],
         alternates: {
             canonical,
         },
@@ -65,14 +73,29 @@ export default async function Page({
     params: Promise<{ city: string }>;
 }) {
     const { city } = await params;
-    const [stories, models] = await Promise.all([
+    const [stories, models, seoCity] = await Promise.all([
         getStoryModelsByCity(city, 24),
         getCatalogModelsByCity(city),
+        getSeoCityBySlug(city),
     ]);
-    const cityLabel = (await getSeoCityBySlug(city))?.name || formatCityName(city) || city;
+    const cityLabel = seoCity?.name || formatCityName(city) || city;
+    const citySlug = seoCity?.slug || slugifyCity(city) || city;
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
+            { "@type": "ListItem", position: 2, name: `${cityLabel} Escort Models`, item: getSiteUrl(`/city/${citySlug}`) },
+        ],
+    };
 
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+            />
             <h1 className="sr-only">Escort models in {cityLabel}</h1>
             <Stories city={city} items={stories} />
             <ModelCatalog city={city} models={models} />

@@ -20,6 +20,12 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Google Analytics
+
+Set `NEXT_PUBLIC_GA_ID` in `.env.local` to enable Google Analytics 4 locally. Add the same variable to the hosting environment variables before deploying.
+
+After deployment, open the Google Analytics Realtime report to confirm that active users are being recorded.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

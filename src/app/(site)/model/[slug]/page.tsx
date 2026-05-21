@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ModelProfilePage from "@/components/model/model-profile-page/ModelProfilePage";
-import { getModelBySlug } from "@/lib/model-data";
+import { getCatalogModelsByCity, getModelBySlug } from "@/lib/model-data";
 import { getSiteUrl, SITE_NAME } from "@/utils/site";
+import { getCitySlug } from "@/constants/cities";
 import type { Model } from "@/models/model.model";
 
 export const dynamic = "force-dynamic";
@@ -46,30 +47,38 @@ export async function generateMetadata({
 
     const canonical = getSiteUrl(`/model/${model.slug}`);
     const description = buildDescription(model);
+    const title = model.city
+        ? `${model.name} — Escort Model in ${model.city} | ${SITE_NAME}`
+        : `${model.name} | ${SITE_NAME}`;
+    const ogAlt = model.city
+        ? `${model.name} — escort model in ${model.city}`
+        : model.name;
 
     return {
-        title: `${model.name} | ${SITE_NAME}`,
+        title: { absolute: title },
         description,
+        keywords: [
+            model.name,
+            `${model.name} escort`,
+            ...(model.city ? [`escort ${model.city}`, `${model.city} escort models`] : []),
+            "Y&P Agency",
+            "luxury escort Italy",
+        ],
         alternates: {
             canonical,
         },
         openGraph: {
-            title: `${model.name} | ${SITE_NAME}`,
+            title,
             description,
             url: canonical,
             type: "profile",
             images: model.photo
-                ? [
-                    {
-                        url: model.photo,
-                        alt: model.name,
-                    },
-                ]
+                ? [{ url: model.photo, alt: ogAlt }]
                 : undefined,
         },
         twitter: {
             card: "summary_large_image",
-            title: `${model.name} | ${SITE_NAME}`,
+            title,
             description,
             images: model.photo ? [model.photo] : undefined,
         },
@@ -86,5 +95,32 @@ export default async function Page({
 
     if (!model) return notFound();
 
-    return <ModelProfilePage model={model} />;
+    const relatedModels = model.city
+        ? (await getCatalogModelsByCity(model.city))
+              .filter((m) => m.slug !== slug)
+              .slice(0, 4)
+        : [];
+
+    const citySlug = model.city ? getCitySlug(model.city) : null;
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: getSiteUrl("/") },
+            ...(citySlug
+                ? [{ "@type": "ListItem", position: 2, name: `${model.city} Escort Models`, item: getSiteUrl(`/city/${citySlug}`) }]
+                : []),
+            { "@type": "ListItem", position: citySlug ? 3 : 2, name: model.name, item: getSiteUrl(`/model/${model.slug}`) },
+        ],
+    };
+
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+            />
+            <ModelProfilePage model={model} relatedModels={relatedModels} />
+        </>
+    );
 }
