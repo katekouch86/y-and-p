@@ -26,18 +26,28 @@ export async function generateMetadata({
     const title = `${cityLabel} Escort Models`;
     const description =
         models.length > 0
-            ? `Browse ${models.length} profiles currently listed for ${cityLabel}, with availability, galleries, and profile details.`
-            : `Browse model profiles, stories, and availability updates for ${cityLabel}.`;
+            ? `Y&P Agency presents ${models.length} elite Slavic and Eastern European escort models in ${cityLabel}. Luxury companionship, VIP escort services, and refined company for private dinners, travel, and events.`
+            : `Discover elite Slavic and Eastern European escort models in ${cityLabel} with Y&P Agency. Luxury VIP escort services and refined companionship for private dinners, travel, and events.`;
 
     return {
         title,
         description,
         keywords: [
             `escort ${cityLabel}`,
+            `escort service ${cityLabel}`,
+            `escort agency ${cityLabel}`,
+            `escort girls ${cityLabel}`,
+            `escort models ${cityLabel}`,
+            `luxury escort ${cityLabel}`,
+            `VIP escort ${cityLabel}`,
+            `elite escort ${cityLabel}`,
+            `Slavic escort ${cityLabel}`,
+            `Ukrainian escort ${cityLabel}`,
             `${cityLabel} escort models`,
             `${cityLabel} escort agency`,
-            `escort in ${cityLabel}`,
             "Y&P Agency",
+            "Young and Pretty Agency",
+            "escort Italy",
             "luxury escort Italy",
         ],
         alternates: {

@@ -85,9 +85,20 @@ export async function generateMetadata({
         keywords: [
             model.name,
             `${model.name} escort`,
-            ...(model.city ? [`escort ${model.city}`, `${model.city} escort models`] : []),
+            ...(model.city
+                ? [
+                    `${model.name} escort ${model.city}`,
+                    `escort ${model.city}`,
+                    `${model.city} escort models`,
+                    `escort model ${model.city}`,
+                    `VIP escort ${model.city}`,
+                    `luxury escort ${model.city}`,
+                ]
+                : []),
             "Y&P Agency",
+            "Young and Pretty Agency",
             "luxury escort Italy",
+            "elite escort Italy",
         ],
         alternates: {
             canonical,
