@@ -1,4 +1,4 @@
-export const CITIES = ["Rome", "Milan", "Florence", "Bologna", "Turin"] as const;
+export const CITIES = ["Rome", "Milan", "Florence", "Bologna", "Naples"] as const;
 
 export type City = (typeof CITIES)[number];
 export type CitySlug = Lowercase<City>;
@@ -8,7 +8,7 @@ export const CITY_TO_SLUG: Record<City, CitySlug> = {
     Milan: "milan",
     Florence: "florence",
     Bologna: "bologna",
-    Turin: "turin",
+    Naples: "naples",
 };
 
 export const CITY_SLUGS = CITIES.map((city) => CITY_TO_SLUG[city]) as readonly CitySlug[];
@@ -18,7 +18,7 @@ export const CITY_LABEL_BY_SLUG: Record<CitySlug, City> = {
     milan: "Milan",
     florence: "Florence",
     bologna: "Bologna",
-    turin: "Turin",
+    naples: "Naples",
 };
 
 const CITY_ALIASES: Record<CitySlug, readonly string[]> = {
@@ -26,7 +26,7 @@ const CITY_ALIASES: Record<CitySlug, readonly string[]> = {
     milan: ["milan", "milano", "mailand", "мілан"],
     florence: ["florence", "firenze", "флоренція", "флоренция"],
     bologna: ["bologna", "болонья", "болонія"],
-    turin: ["turin", "torino", "турін", "турин"],
+    naples: ["naples", "napoli", "неаполь"],
 };
 
 export function parseCity(raw?: string | null): City | null {

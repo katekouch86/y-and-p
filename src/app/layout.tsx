@@ -12,7 +12,7 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 export const metadata: Metadata = {
     metadataBase: new URL(SITE_URL),
     title: {
-        default: "Y&P Agency (Young and Pretty) — Luxury Escort Companionship in Italy | Rome, Milan, Florence, Bologna, Turin",
+        default: "Y&P Agency (Young and Pretty) — Luxury Escort Companionship in Italy | Rome, Milan, Florence, Bologna, Naples",
         template: `%s | ${SITE_NAME}`,
     },
     description:
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
         "escort Florence", "escort service Florence", "luxury escort Florence", "VIP escort Florence",
         // Bologna
         "escort Bologna", "escort service Bologna", "luxury escort Bologna",
-        // Turin
-        "escort Turin", "escort service Turin", "luxury escort Turin",
+        // Naples
+        "escort Naples", "escort service Naples", "luxury escort Naples",
     ],
     icons: {
         icon: [{ url: "/favicon.png", type: "image/png", sizes: "64x64" }],

@@ -9,7 +9,7 @@ const Footer = () => {
     return (
         <footer className="footer" aria-label="Site footer">
             <p className="footer__tagline">
-                Y&amp;P Agency (Young and Pretty) — Luxury escort services in Rome, Milan, Florence, Bologna, and Turin.
+                Y&amp;P Agency (Young and Pretty) — Luxury escort services in Rome, Milan, Florence, Bologna, and Naples.
                 Elite Slavic companionship across Italy.
             </p>
             <nav className="footer__cities" aria-label="Cities navigation">
